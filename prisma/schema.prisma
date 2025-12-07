@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- ENUMS ---
+
+enum Perfil {
+  USUARIO
+  CONTROLADOR
+  ADMINISTRADOR
+  SUPER_ADMIN
+}
+
+enum StatusMaterial {
+  DISPONIVEL
+  EM_USO
+  MANUTENCAO
+}
+
+// --- MODELOS ---
+
+model Unidade {
+  id        String   @id @default(uuid())
+  nome      String
+  endereco  String?
+  createdAt DateTime @default(now())
+
+  // Relacionamentos
+  usuarios              Usuario[]
+  materiais             Material[]
+  transferenciasOrigem  Transferencia[] @relation("OrigemUnidade")
+  transferenciasDestino Transferencia[] @relation("DestinoUnidade")
+}
+
+model TipoMaterial {
+  id        String     @id @default(uuid())
+  nome      String     @unique // Ex: "Etilômetro", "Taser"
+  
+  materiais Material[]
+}
+
+model Usuario {
+  id            String @id @default(uuid())
+  identificacao String @unique // Login
+  nome          String
+  senha         String 
+  perfil        Perfil @default(USUARIO)
+  
+  unidadeId     String
+  unidade       Unidade @relation(fields: [unidadeId], references: [id])
+
+  // Logs
+  movimentacoesFeitas    Movimentacao[] @relation("Beneficiario")
+  retiradasAutorizadas   Movimentacao[] @relation("ResponsavelRetirada")
+  devolucoesAutorizadas  Movimentacao[] @relation("ResponsavelDevolucao")
+  transferenciasRealizadas Transferencia[]
+}
+
+model Material {
+  id                  String         @id @default(uuid())
+  codigoIdentificacao String         @unique
+  descricao           String         // Detalhe fixo do bem
+  status              StatusMaterial @default(DISPONIVEL)
+  
+  // O que está acontecendo agora com o material (Ex: "Tela quebrada")
+  // Deve ser limpo quando o status voltar a ser DISPONIVEL
+  observacaoAtual     String?        
+
+  // FKs
+  unidadeId           String
+  unidade             Unidade        @relation(fields: [unidadeId], references: [id])
+  tipoId              String
+  tipo                TipoMaterial   @relation(fields: [tipoId], references: [id])
+
+  movimentacoes       Movimentacao[]
+  transferencias      Transferencia[]
+}
+
+model Movimentacao {
+  id             String    @id @default(uuid())
+  dataRetirada   DateTime  @default(now())
+  dataDevolucao  DateTime?
+  obsRetirada    String?
+  obsDevolucao   String?   // Histórico do que aconteceu
+  
+  materialId     String
+  material       Material  @relation(fields: [materialId], references: [id])
+
+  usuarioId      String
+  usuario        Usuario   @relation("Beneficiario", fields: [usuarioId], references: [id])
+
+  respRetiradaId String
+  respRetirada   Usuario   @relation("ResponsavelRetirada", fields: [respRetiradaId], references: [id])
+
+  respDevolucaoId String?
+  respDevolucao   Usuario?  @relation("ResponsavelDevolucao", fields: [respDevolucaoId], references: [id])
+}
+
+model Transferencia {
+  id                String   @id @default(uuid())
+  dataTransferencia DateTime @default(now())
+  observacao        String?
+
+  materialId        String
+  material          Material @relation(fields: [materialId], references: [id])
+
+  origemId          String
+  origem            Unidade  @relation("OrigemUnidade", fields: [origemId], references: [id])
+
+  destinoId         String
+  destino           Unidade  @relation("DestinoUnidade", fields: [destinoId], references: [id])
+
+  responsavelId     String
+  responsavel       Usuario  @relation(fields: [responsavelId], references: [id])
+}
