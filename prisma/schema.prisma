@@ -24,8 +24,8 @@ enum StatusMaterial {
 // --- MODELOS ---
 
 model Unidade {
-  id        String   @id @default(uuid())
-  nome      String
+  id        Int      @id @default(autoincrement())
+  nome      String   @unique
   endereco  String?
   createdAt DateTime @default(now())
 
@@ -37,20 +37,20 @@ model Unidade {
 }
 
 model TipoMaterial {
-  id        String     @id @default(uuid())
+  id        Int        @id @default(autoincrement())
   nome      String     @unique // Ex: "Etilômetro", "Taser"
   
   materiais Material[]
 }
 
 model Usuario {
-  id            String @id @default(uuid())
+  id            Int    @id @default(autoincrement())
   identificacao String @unique // Login
   nome          String
   senha         String 
   perfil        Perfil @default(USUARIO)
   
-  unidadeId     String
+  unidadeId     Int
   unidade       Unidade @relation(fields: [unidadeId], references: [id])
 
   // Logs
@@ -61,7 +61,7 @@ model Usuario {
 }
 
 model Material {
-  id                  String         @id @default(uuid())
+  id                  Int            @id @default(autoincrement())
   codigoIdentificacao String         @unique
   descricao           String         // Detalhe fixo do bem
   status              StatusMaterial @default(DISPONIVEL)
@@ -71,9 +71,9 @@ model Material {
   observacaoAtual     String?        
 
   // FKs
-  unidadeId           String
+  unidadeId           Int
   unidade             Unidade        @relation(fields: [unidadeId], references: [id])
-  tipoId              String
+  tipoId              Int
   tipo                TipoMaterial   @relation(fields: [tipoId], references: [id])
 
   movimentacoes       Movimentacao[]
@@ -81,39 +81,39 @@ model Material {
 }
 
 model Movimentacao {
-  id             String    @id @default(uuid())
+  id             Int       @id @default(autoincrement())
   dataRetirada   DateTime  @default(now())
   dataDevolucao  DateTime?
   obsRetirada    String?
   obsDevolucao   String?   // Histórico do que aconteceu
   
-  materialId     String
+  materialId     Int
   material       Material  @relation(fields: [materialId], references: [id])
 
-  usuarioId      String
+  usuarioId      Int
   usuario        Usuario   @relation("Beneficiario", fields: [usuarioId], references: [id])
 
-  respRetiradaId String
+  respRetiradaId Int
   respRetirada   Usuario   @relation("ResponsavelRetirada", fields: [respRetiradaId], references: [id])
 
-  respDevolucaoId String?
+  respDevolucaoId Int?
   respDevolucao   Usuario?  @relation("ResponsavelDevolucao", fields: [respDevolucaoId], references: [id])
 }
 
 model Transferencia {
-  id                String   @id @default(uuid())
+  id                Int      @id @default(autoincrement())
   dataTransferencia DateTime @default(now())
   observacao        String?
 
-  materialId        String
+  materialId        Int
   material          Material @relation(fields: [materialId], references: [id])
 
-  origemId          String
+  origemId          Int
   origem            Unidade  @relation("OrigemUnidade", fields: [origemId], references: [id])
 
-  destinoId         String
+  destinoId         Int
   destino           Unidade  @relation("DestinoUnidade", fields: [destinoId], references: [id])
 
-  responsavelId     String
+  responsavelId     Int
   responsavel       Usuario  @relation(fields: [responsavelId], references: [id])
 }

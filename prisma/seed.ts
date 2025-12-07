@@ -13,37 +13,17 @@ async function main() {
   // --- UNIDADES ---
   console.log('📍 Criando Unidades...')
   
-  const unidadeBOP3203 = await prisma.unidade.upsert({
-    where: { id: 'unidade-bop-320-3' },
-    update: {},
-    create: {
-      id: 'unidade-bop-320-3',
-      nome: 'BOP 320/3',
-      endereco: null,
-    },
-  })
+  const unidades = ['BOP 320/3', 'BOP 320/2', '3 CIA']
+  
+  for (const nome of unidades) {
+    await prisma.unidade.upsert({
+      where: { nome },
+      update: {},
+      create: { nome },
+    })
+  }
 
-  const unidadeBOP3202 = await prisma.unidade.upsert({
-    where: { id: 'unidade-bop-320-2' },
-    update: {},
-    create: {
-      id: 'unidade-bop-320-2',
-      nome: 'BOP 320/2',
-      endereco: null,
-    },
-  })
-
-  const unidade3CIA = await prisma.unidade.upsert({
-    where: { id: 'unidade-3-cia' },
-    update: {},
-    create: {
-      id: 'unidade-3-cia',
-      nome: '3 CIA',
-      endereco: null,
-    },
-  })
-
-  console.log(`✅ Unidades criadas: ${unidadeBOP3203.nome}, ${unidadeBOP3202.nome}, ${unidade3CIA.nome}`)
+  console.log(`✅ ${unidades.length} Unidades criadas`)
 
   // --- TIPOS DE MATERIAL ---
   console.log('📦 Criando Tipos de Material...')
@@ -87,4 +67,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
-
