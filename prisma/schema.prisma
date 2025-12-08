@@ -9,10 +9,9 @@ datasource db {
 // --- ENUMS ---
 
 enum Perfil {
-  USUARIO
-  CONTROLADOR
-  ADMINISTRADOR
-  SUPER_ADMIN
+  USUARIO       // Operacional (BOP) - Retirar material para si mesmo
+  CONTROLADOR   // Gestão Local (BOP/PEL) - Retirar/Devolver para terceiros
+  GESTOR        // Gestão Completa (CIA/BPRv/CPRv) - Cadastrar, Transferir, Relatórios, Admin
 }
 
 enum StatusMaterial {
@@ -26,8 +25,14 @@ enum StatusMaterial {
 model Unidade {
   id        Int      @id @default(autoincrement())
   nome      String   @unique
+  sigla     String?  // Ex: "BOP", "PEL", "CIA", "BPRv", "CPRv"
   endereco  String?
   createdAt DateTime @default(now())
+
+  // Hierarquia Organizacional (Auto-relacionamento)
+  unidadeSuperiorId Int?
+  unidadeSuperior   Unidade?  @relation("Hierarquia", fields: [unidadeSuperiorId], references: [id])
+  subordinadas      Unidade[] @relation("Hierarquia")
 
   // Relacionamentos
   usuarios              Usuario[]
