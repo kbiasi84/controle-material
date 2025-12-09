@@ -33,6 +33,11 @@ export async function loginAction(
       return { error: 'Usuário ou senha inválidos.' }
     }
 
+    // Verifica se o usuário está ativo
+    if (!usuario.ativo) {
+      return { error: 'Usuário inativo. Entre em contato com o administrador.' }
+    }
+
     // Compara a senha
     const senhaValida = await bcrypt.compare(senha, usuario.senha)
 

@@ -50,11 +50,12 @@ model TipoMaterial {
 }
 
 model Usuario {
-  id            Int    @id @default(autoincrement())
-  identificacao String @unique // Login
+  id            Int     @id @default(autoincrement())
+  identificacao String  @unique // Login
   nome          String
   senha         String 
-  perfil        Perfil @default(USUARIO)
+  perfil        Perfil  @default(USUARIO)
+  ativo         Boolean @default(true)
   
   unidadeId     Int
   unidade       Unidade @relation(fields: [unidadeId], references: [id])
