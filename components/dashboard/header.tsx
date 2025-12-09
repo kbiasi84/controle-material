@@ -11,10 +11,11 @@ import Image from 'next/image'
 interface HeaderProps {
   userName: string
   unidadeNome: string
+  hierarquiaUnidade: string[]
   perfil: string
 }
 
-export function Header({ userName, unidadeNome, perfil }: HeaderProps) {
+export function Header({ userName, unidadeNome, hierarquiaUnidade, perfil }: HeaderProps) {
   const [sheetOpen, setSheetOpen] = useState(false)
   const pathname = usePathname()
 
@@ -66,10 +67,21 @@ export function Header({ userName, unidadeNome, perfil }: HeaderProps) {
 
       {/* Right Side */}
       <div className="flex items-center gap-6">
-        {/* Unit Badge */}
+        {/* Unit Hierarchy Badge */}
         <div className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-blue-50 text-blue-700 rounded-xl text-sm font-bold border-2 border-blue-100">
-          <Building2 className="w-4 h-4" />
-          <span>Unidade: {unidadeNome}</span>
+          <Building2 className="w-4 h-4 shrink-0" />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {hierarquiaUnidade.map((unidade, index) => (
+              <span key={index} className="flex items-center">
+                <span className={index === 0 ? 'text-blue-800' : 'text-blue-600'}>
+                  {unidade}
+                </span>
+                {index < hierarquiaUnidade.length - 1 && (
+                  <span className="text-blue-400 mx-1.5">›</span>
+                )}
+              </span>
+            ))}
+          </div>
         </div>
 
         {/* User Info */}

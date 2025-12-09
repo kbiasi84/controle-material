@@ -12,6 +12,7 @@ import {
   Building2,
   LogOut,
   Boxes,
+  FileText,
 } from 'lucide-react'
 import { logoutAction } from '@/app/dashboard/actions'
 
@@ -45,9 +46,10 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
   ]
 
   const menuAdmin: NavItem[] = [
-    { label: 'Materiais', href: '/admin/materiais', icon: <Package className="w-6 h-6" /> },
-    { label: 'Unidades', href: '/admin/unidades', icon: <Building2 className="w-6 h-6" /> },
-    { label: 'Usuários', href: '/admin/usuarios', icon: <UserCog className="w-6 h-6" /> },
+    { label: 'Materiais', href: '/dashboard/materiais', icon: <Package className="w-6 h-6" /> },
+    { label: 'Unidades', href: '/dashboard/unidades', icon: <Building2 className="w-6 h-6" /> },
+    { label: 'Usuários', href: '/dashboard/usuarios', icon: <UserCog className="w-6 h-6" /> },
+    { label: 'Relatórios', href: '/dashboard/relatorios', icon: <FileText className="w-6 h-6" /> },
   ]
 
   const NavLink = ({ item }: { item: NavItem }) => {

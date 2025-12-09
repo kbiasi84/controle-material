@@ -1,129 +1,295 @@
-Documentação Técnica: Sistema de Controle de Materiais e Patrimônio (SCMP)
+# Documentação Técnica: Sistema de Controle de Materiais e Patrimônio (SCMP)
 
-1. Visão Geral
+## 1. Visão Geral
 
 Sistema web para gerenciamento ágil de retirada, devolução e manutenção de materiais e equipamentos. O foco é a eficiência operacional (poucos cliques), rastreabilidade total (logs de auditoria), padronização de cadastros e visibilidade hierárquica em cascata entre unidades organizacionais.
 
-2. Stack Tecnológica
+## 2. Stack Tecnológica
 
-Framework: Next.js (App Router) – Fullstack, seguro e rápido.
-Estilização: Tailwind CSS + Shadcn/ui – Interface moderna e responsiva.
-Banco de Dados: PostgreSQL.
-ORM: Prisma 7.x – Gerenciamento do banco e tipos.
-Autenticação: JWT com jose + bcryptjs.
+| Tecnologia | Descrição |
+|------------|-----------|
+| **Framework** | Next.js 16.x (App Router) – Fullstack, seguro e rápido |
+| **Estilização** | Tailwind CSS + Shadcn/ui – Interface moderna e responsiva |
+| **Banco de Dados** | PostgreSQL |
+| **ORM** | Prisma 7.x – Gerenciamento do banco e tipos |
+| **Autenticação** | JWT com jose + bcryptjs |
 
-3. Arquitetura de Dados (Modelagem)
+## 3. Arquitetura de Dados (Modelagem)
 
 O banco é projetado para suportar Hierarquia Organizacional em Cascata, Categorização Rígida e Persistência de Status.
 
-3.1 Estrutura Hierárquica (A Árvore)
+### 3.1 Estrutura Hierárquica (A Árvore)
 
 O sistema usa auto-relacionamento na tabela Unidade para criar uma árvore hierárquica:
 
 ```
-CPRv (Superior: null)
-  ↳ 2º BPRv (Superior: CPRv)
-      ↳ 1ª CIA (Superior: 2º BPRv)
-          ↳ 1º PEL (Superior: 1ª CIA)
-              ↳ BOP 320/3 (Superior: 1º PEL)
-              ↳ BOP 320/2 (Superior: 1º PEL)
-      ↳ 3ª CIA (Superior: 2º BPRv)
-          ↳ 2º PEL (Superior: 3ª CIA)
-              ↳ BOP Centro (Superior: 2º PEL)
-  ↳ 3º BPRv (Superior: CPRv)
+CPRV (Superior: null)
+  ↳ 3 BPRV (Superior: CPRV)
+      ↳ 3 CIA (Superior: 3 BPRV)
+          ↳ 3 PEL (Superior: 3 CIA)
+              ↳ BOP 320/1 (Superior: 3 PEL)
+              ↳ BOP 320/2 (Superior: 3 PEL)
+              ↳ BOP 320/3 (Superior: 3 PEL)
 ```
 
-Regra de Visibilidade: Um usuário vê materiais da sua unidade + todas as subordinadas (cascata para baixo).
+**Regra de Visibilidade:** Um usuário vê materiais da sua unidade + todas as subordinadas (cascata para baixo).
 
-3.2 Tabelas Principais
+### 3.2 Tabelas Principais
 
-Unidade
+#### Unidade
 Locais físicos organizados hierarquicamente.
-- id (PK - Int Auto-increment)
-- nome (Unique - String) Ex: "BOP 320/3", "1ª CIA", "2º BPRv"
-- sigla (String?) Ex: "BOP", "CIA", "PEL", "BPRv", "CPRv"
-- endereco (String?)
-- unidadeSuperiorId (FK - Int?) – Referência à unidade pai na hierarquia
-- subordinadas (Relação) – Lista de unidades filhas
-Regra: Criadas apenas via Seed ou SUPER_ADMIN.
+- `id` (PK - Int Auto-increment)
+- `nome` (Unique - String) Ex: "BOP 320/3", "3 CIA", "3 BPRV"
+- `sigla` (String?) Ex: "BOP", "CIA", "PEL", "BPRV", "CPRV"
+- `endereco` (String?)
+- `unidadeSuperiorId` (FK - Int?) – Referência à unidade pai na hierarquia
+- `subordinadas` (Relação) – Lista de unidades filhas
 
-TipoMaterial
+**Regra:** Criadas apenas via Seed ou SUPER_ADMIN.
+
+#### TipoMaterial
 Categorias padronizadas (Ex: "Etilômetro", "Taser", "Viatura").
-- id (PK - Int Auto-increment)
-- nome (Unique - String)
-Regra: Impede que usuários criem categorias erradas (ex: "Tazer" vs "Taser").
+- `id` (PK - Int Auto-increment)
+- `nome` (Unique - String)
 
-Usuario
+**Regra:** Impede que usuários criem categorias erradas (ex: "Tazer" vs "Taser").
+
+#### Usuario
 Atores do sistema.
-- id (PK - Int Auto-increment)
-- identificacao (Unique - Login)
-- nome, senha (hash bcrypt)
-- perfil (USUARIO, CONTROLADOR, ADMINISTRADOR, GESTOR, SUPER_ADMIN)
-- unidadeId (FK - Int) – Todo usuário pertence a uma unidade fixa.
+- `id` (PK - Int Auto-increment)
+- `identificacao` (Unique - Login)
+- `nome`, `senha` (hash bcrypt)
+- `perfil` (USUARIO, CONTROLADOR, ADMINISTRADOR, GESTOR, SUPER_ADMIN)
+- `unidadeId` (FK - Int) – Todo usuário pertence a uma unidade fixa.
 
-Material
+#### Material
 Inventário físico.
-- id (PK - Int Auto-increment)
-- codigoIdentificacao (Unique - Ex: Patrimônio/Barras)
-- descricao (Detalhes fixos. Ex: "Marca Bosch, Modelo X")
-- status (DISPONIVEL, EM_USO, MANUTENCAO)
-- observacaoAtual (String?) – Guarda o defeito ou motivo do status atual.
-- tipoId (FK - Int), unidadeId (FK - Int).
+- `id` (PK - Int Auto-increment)
+- `codigoIdentificacao` (Unique - Ex: Patrimônio/Barras)
+- `descricao` (Detalhes fixos. Ex: "Marca Bosch, Modelo X")
+- `status` (DISPONIVEL, EM_USO, MANUTENCAO)
+- `observacaoAtual` (String?) – Guarda o defeito ou motivo do status atual.
+- `tipoId` (FK - Int), `unidadeId` (FK - Int).
 
-Movimentacao
+#### Movimentacao
 Log histórico de uso diário.
-- id (PK - Int Auto-increment), dataRetirada, dataDevolucao
-- obsRetirada, obsDevolucao
-- usuarioId (FK - Int, Quem usou), respRetiradaId (FK - Int, Quem entregou), respDevolucaoId (FK - Int?, Quem recebeu).
+- `id` (PK - Int Auto-increment), `dataRetirada`, `dataDevolucao`
+- `obsRetirada`, `obsDevolucao`
+- `usuarioId` (FK - Int, Quem usou), `respRetiradaId` (FK - Int, Quem entregou), `respDevolucaoId` (FK - Int?, Quem recebeu).
 
-Transferencia
+#### Transferencia
 Log de mudança de patrimônio entre unidades.
-- id (PK - Int Auto-increment), dataTransferencia, observacao
-- origemId (FK - Int), destinoId (FK - Int), materialId (FK - Int), responsavelId (FK - Int).
+- `id` (PK - Int Auto-increment), `dataTransferencia`, `observacao`
+- `origemId` (FK - Int), `destinoId` (FK - Int), `materialId` (FK - Int), `responsavelId` (FK - Int).
 
-4. Matriz de Perfis e Permissões (Hierárquica)
+## 4. Matriz de Perfis e Permissões (Hierárquica)
 
 | Perfil | Foco de Atuação | Escopo de Visão | Permissões Chave |
 |--------|-----------------|-----------------|------------------|
 | USUARIO | Operacional (BOP) | Local: Apenas sua unidade | Retirar para si mesmo |
 | CONTROLADOR | Gestão Local (BOP/PEL) | Local: Apenas sua unidade | Retirar/Devolver para a tropa local |
 | ADMINISTRADOR | Gestão Tática (CIA/PEL) | Regional: Sua unidade + Filhas | Cadastrar Materiais, Editar, Transferir |
-| GESTOR | Comando (BPRv) | Regional Ampla: Toda árvore abaixo | Relatórios Avançados, Auditoria, Histórico |
+| GESTOR | Comando (BPRv) | Regional Ampla: Toda árvore abaixo | Relatórios Avançados, Auditoria, Histórico, Concluir Manutenção |
 | SUPER_ADMIN | Geral (CPRv/TI) | Global: Todas as unidades | Criar Unidades, Tipos, Gestão do Sistema |
 
-5. Fluxos e Regras de Negócio
+## 5. Fluxos e Regras de Negócio
 
-A. Regra de Visibilidade Hierárquica (Algoritmo da Árvore)
+### A. Regra de Visibilidade Hierárquica (Algoritmo da Árvore)
 
 Quando um usuário loga, o sistema calcula a lista de IDs Permitidos:
 1. Pega o ID da unidade do usuário.
 2. Se perfil = USUARIO ou CONTROLADOR: lista contém apenas esse ID.
 3. Se perfil = ADMINISTRADOR, GESTOR ou SUPER_ADMIN: executa busca recursiva de todas as unidades subordinadas.
-4. Resultado: Materiais são filtrados por WHERE unidadeId IN [Lista_Calculada].
+4. Resultado: Materiais são filtrados por `WHERE unidadeId IN [Lista_Calculada]`.
 
-Exemplo prático:
-- Usuário do "2º BPRv" (GESTOR) vê: 2º BPRv, 1ª CIA, 3ª CIA, 1º PEL, 2º PEL, BOP 320/3, BOP 320/2, BOP Centro.
-- Usuário do "3º BPRv" (GESTOR) NÃO vê nada do 2º BPRv (está em "galho" diferente).
+**Exemplo prático:**
+- Usuário do "3 BPRV" (GESTOR) vê: 3 BPRV, 3 CIA, 3 PEL, BOP 320/1, BOP 320/2, BOP 320/3.
+- Usuário do "BOP 320/1" (USUARIO) NÃO vê nada do BOP 320/2 ou BOP 320/3.
 
-B. Fluxo de Retirada (Check-out)
+### B. Fluxo de Retirada (Check-out)
 1. Usuário seleciona item "Disponível".
 2. Identificação:
-   - Se USUARIO: O sistema assume que é ele mesmo.
-   - Se CONTROLADOR+: Seleciona o beneficiário de uma lista.
-3. O sistema muda status para EM_USO.
-4. Log é salvo em Movimentacao.
+   - Se USUARIO: O sistema assume que é ele mesmo (retirada direta).
+   - Se CONTROLADOR+: Seleciona o beneficiário de uma lista com busca.
+3. O sistema muda status para `EM_USO`.
+4. Log é salvo em `Movimentacao`.
+5. Mensagem de confirmação é exibida.
 
-C. Fluxo de Devolução (Check-in)
-1. Usuário clica em "Devolver" no item.
+### C. Fluxo de Devolução (Check-in)
+1. CONTROLADOR ou GESTOR clica em "Devolver" no item (USUARIO não vê este botão).
 2. Preenche observação (opcional).
 3. Decisão de Avaria: [ ] Enviar para Manutenção?
-   - Se SIM: Status vira MANUTENCAO, observacaoAtual recebe o defeito.
-   - Se NÃO: Status vira DISPONIVEL, observacaoAtual é limpo.
-4. Log é salvo em Movimentacao.
+   - Se SIM: Status vira `MANUTENCAO`, `observacaoAtual` recebe o defeito.
+   - Se NÃO: Status vira `DISPONIVEL`, `observacaoAtual` é limpo.
+4. Log é salvo em `Movimentacao`.
 
-6. Código Final do Banco de Dados (schema.prisma)
+### D. Fluxo de Manutenção (Conclusão)
+1. Apenas GESTOR vê o botão "Concluir Manutenção" em materiais com status `MANUTENCAO`.
+2. Ao clicar, abre modal de confirmação.
+3. Status muda para `DISPONIVEL`, `observacaoAtual` é limpo.
+4. Material volta a ficar disponível para retirada.
 
-Nota: No Prisma 7.x, a URL do banco é configurada em prisma.config.ts, não mais no schema.
+---
+
+## 6. Funcionalidades Implementadas
+
+### 6.1 Interface Visual
+
+- **Design System:** Tema profissional com cores orange/amber e fundo slate
+- **Sidebar:** Menu lateral com logo "SCMP Policial", navegação por ícones, logout
+- **Header:** Breadcrumbs, exibição da hierarquia da unidade (ex: "BOP3 > 3PEL > 3CIA > 3BPRV"), avatar do usuário
+- **Cards:** Design padronizado com bordas arredondadas, ícones por tipo de material, badges de status coloridos
+- **Botões:** Estilo consistente com altura h-12, bordas arredondadas xl, cores padronizadas
+- **Responsividade:** Layout adaptável para mobile e desktop
+
+### 6.2 Painel de Controle (Dashboard)
+
+**Localização:** `/dashboard`
+
+**Filtros:**
+- **Busca por texto:** Ativa após 3 caracteres, busca por código ou nome do material
+- **Filtro por Tipo:** Dropdown dinâmico com tipos cadastrados no banco
+- **Filtro por Status:** Dropdown com opções Todos, Disponível (padrão), Em Uso, Manutenção
+- **Debounce:** 400ms para otimização de performance na busca
+
+**Cards de Material:**
+- Exibem: ícone do tipo, nome, código, unidade, status com badge colorido
+- Se `EM_USO`: Mostra nome do usuário em posse e observação (se houver)
+- Se `MANUTENCAO`: Mostra observação do defeito
+- Botões de ação conforme perfil do usuário
+
+### 6.3 Modal de Retirada
+
+**Funcionalidade:** Permite retirar material para uso
+
+**Regras por Perfil:**
+- **USUARIO:** Retira automaticamente para si mesmo (sem seleção)
+- **CONTROLADOR/GESTOR:** Pode selecionar qualquer usuário via busca
+
+**Componentes:**
+- Campo de observação opcional
+- Busca de usuários com API (`/api/usuarios/buscar`)
+- Validação: só permite retirada se status = `DISPONIVEL`
+- Feedback de sucesso/erro
+
+### 6.4 Modal de Devolução
+
+**Funcionalidade:** Permite devolver material em uso
+
+**Acesso:** Apenas CONTROLADOR e GESTOR
+
+**Campos:**
+- Observação de devolução (opcional)
+- Checkbox "Enviar para manutenção"
+
+**Comportamento:**
+- Se checkbox marcado: Status → `MANUTENCAO`, observação salva em `observacaoAtual`
+- Se checkbox desmarcado: Status → `DISPONIVEL`, `observacaoAtual` limpo
+
+### 6.5 Modal de Concluir Manutenção
+
+**Funcionalidade:** Conclui manutenção e disponibiliza material
+
+**Acesso:** Apenas GESTOR
+
+**Comportamento:**
+- Status → `DISPONIVEL`
+- `observacaoAtual` → null
+- Material fica disponível para novas retiradas
+
+### 6.6 Minhas Retiradas
+
+**Localização:** `/dashboard/retiradas`
+
+**Funcionalidade:** Lista materiais em posse do usuário logado
+
+**Características:**
+- Cards no mesmo padrão do dashboard
+- Mostra data de retirada e observação
+- Botão "Devolver" apenas para CONTROLADOR/GESTOR
+
+### 6.7 Controle de Efetivo
+
+**Localização:** `/dashboard/efetivo`
+
+**Acesso:** CONTROLADOR e GESTOR
+
+**Funcionalidade:** Visualiza todos os usuários com materiais em posse
+
+**Características:**
+- Cards por usuário mostrando: nome, unidade, lista de materiais
+- Filtro de busca (3+ caracteres) por nome, equipamento ou qualquer texto do card
+- Botão "Devolver" individual por material
+- Botão "Devolver Todos" para devolução rápida sem observação
+- Modal de confirmação para "Devolver Todos"
+
+### 6.8 Histórico de Movimentações
+
+**Localização:** `/dashboard/historico`
+
+**Funcionalidade:** Exibe histórico de retiradas e devoluções do usuário
+
+**Filtros:**
+- Busca por material ou código
+- Status: Todos, Em Posse, Devolvido
+- Período: Últimas 24h, Últimos 7 dias, Últimos 30 dias
+
+**Características:**
+- Tabela paginada com integração ao banco de dados
+- Colunas: Material, Código, Data Retirada, Data Devolução, Status, Observação
+- Paginação com controle de página e total de registros
+
+---
+
+## 7. Estrutura de Arquivos
+
+```
+app/
+├── dashboard/
+│   ├── page.tsx              # Painel principal
+│   ├── layout.tsx            # Layout com sidebar e header
+│   ├── actions.ts            # Server action de logout
+│   ├── retirada-actions.ts   # Server action de retirada
+│   ├── devolucao-actions.ts  # Server action de devolução
+│   ├── manutencao-actions.ts # Server action de manutenção
+│   ├── retiradas/
+│   │   └── page.tsx          # Minhas Retiradas
+│   ├── efetivo/
+│   │   └── page.tsx          # Controle de Efetivo
+│   └── historico/
+│       └── page.tsx          # Histórico de Movimentações
+├── api/
+│   └── usuarios/
+│       └── buscar/
+│           └── route.ts      # API de busca de usuários
+└── login/
+    └── page.tsx              # Página de login
+
+components/
+└── dashboard/
+    ├── sidebar.tsx           # Menu lateral
+    ├── header.tsx            # Cabeçalho com breadcrumbs
+    ├── material-card.tsx     # Card de material
+    ├── material-filters.tsx  # Filtros do dashboard
+    ├── modal-retirada.tsx    # Modal de retirada
+    ├── modal-devolucao.tsx   # Modal de devolução
+    ├── modal-manutencao.tsx  # Modal de manutenção
+    ├── modal-confirmacao.tsx # Modal de confirmação genérico
+    ├── card-usuario-efetivo.tsx # Card de usuário no efetivo
+    ├── efetivo-lista.tsx     # Lista filtrável do efetivo
+    ├── historico-filtros.tsx # Filtros do histórico
+    └── paginacao.tsx         # Componente de paginação
+
+lib/
+├── prisma.ts                 # Cliente Prisma
+├── auth.ts                   # Funções de autenticação
+├── permissions.ts            # Lógica de permissões
+└── unidade.ts                # Funções de hierarquia de unidade
+```
+
+---
+
+## 8. Código do Banco de Dados (schema.prisma)
 
 ```prisma
 generator client {
@@ -155,16 +321,14 @@ enum StatusMaterial {
 model Unidade {
   id        Int      @id @default(autoincrement())
   nome      String   @unique
-  sigla     String?  // Ex: "BOP", "PEL", "CIA", "BPRv", "CPRv"
+  sigla     String?
   endereco  String?
   createdAt DateTime @default(now())
 
-  // Hierarquia Organizacional (Auto-relacionamento)
   unidadeSuperiorId Int?
   unidadeSuperior   Unidade?  @relation("Hierarquia", fields: [unidadeSuperiorId], references: [id])
   subordinadas      Unidade[] @relation("Hierarquia")
 
-  // Relacionamentos
   usuarios              Usuario[]
   materiais             Material[]
   transferenciasOrigem  Transferencia[] @relation("OrigemUnidade")
@@ -173,14 +337,13 @@ model Unidade {
 
 model TipoMaterial {
   id        Int        @id @default(autoincrement())
-  nome      String     @unique // Ex: "Etilômetro", "Taser"
-  
+  nome      String     @unique
   materiais Material[]
 }
 
 model Usuario {
   id            Int    @id @default(autoincrement())
-  identificacao String @unique // Login
+  identificacao String @unique
   nome          String
   senha         String 
   perfil        Perfil @default(USUARIO)
@@ -188,7 +351,6 @@ model Usuario {
   unidadeId     Int
   unidade       Unidade @relation(fields: [unidadeId], references: [id])
 
-  // Logs
   movimentacoesFeitas    Movimentacao[] @relation("Beneficiario")
   retiradasAutorizadas   Movimentacao[] @relation("ResponsavelRetirada")
   devolucoesAutorizadas  Movimentacao[] @relation("ResponsavelDevolucao")
@@ -198,14 +360,10 @@ model Usuario {
 model Material {
   id                  Int            @id @default(autoincrement())
   codigoIdentificacao String         @unique
-  descricao           String         // Detalhe fixo do bem
+  descricao           String
   status              StatusMaterial @default(DISPONIVEL)
-  
-  // O que está acontecendo agora com o material (Ex: "Tela quebrada")
-  // Deve ser limpo quando o status voltar a ser DISPONIVEL
   observacaoAtual     String?        
 
-  // FKs
   unidadeId           Int
   unidade             Unidade        @relation(fields: [unidadeId], references: [id])
   tipoId              Int
@@ -220,7 +378,7 @@ model Movimentacao {
   dataRetirada   DateTime  @default(now())
   dataDevolucao  DateTime?
   obsRetirada    String?
-  obsDevolucao   String?   // Histórico do que aconteceu
+  obsDevolucao   String?
   
   materialId     Int
   material       Material  @relation(fields: [materialId], references: [id])
@@ -254,12 +412,77 @@ model Transferencia {
 }
 ```
 
-7. Usuários de Teste (Seed)
+---
 
-| Identificação | Senha | Perfil | Unidade |
-|---------------|-------|--------|---------|
-| superadmin | 123456 | SUPER_ADMIN | CPRv |
-| gestor | 123456 | GESTOR | 2º BPRv |
-| admin | 123456 | ADMINISTRADOR | 1ª CIA |
-| controlador | 123456 | CONTROLADOR | 1º PEL |
-| usuario | 123456 | USUARIO | BOP 320/3 |
+## 9. Usuários de Teste (Seed)
+
+### Estrutura de Unidades
+
+| Unidade | Sigla | Unidade Superior |
+|---------|-------|------------------|
+| CPRV | CPRV | - |
+| 3 BPRV | 3BPRV | CPRV |
+| 3 CIA | 3CIA | 3 BPRV |
+| 3 PEL | 3PEL | 3 CIA |
+| BOP 320/1 | BOP1 | 3 PEL |
+| BOP 320/2 | BOP2 | 3 PEL |
+| BOP 320/3 | BOP3 | 3 PEL |
+
+### Usuários
+
+| Unidade | Usuário 1 | Usuário 2 |
+|---------|-----------|-----------|
+| BOP 320/1 | sd.silva (USUARIO) | cb.costa (CONTROLADOR) |
+| BOP 320/2 | sd.santos (USUARIO) | cb.lima (CONTROLADOR) |
+| BOP 320/3 | sd.gomes (USUARIO) | maj.silva (GESTOR) |
+| 3 PEL | sgt.oliveira (CONTROLADOR) | ten.almeida (ADMINISTRADOR) |
+| 3 CIA | cap.souza (ADMINISTRADOR) | maj.ferreira (GESTOR) |
+| 3 BPRV | cel.rodrigues (GESTOR) | tc.mendes (GESTOR) |
+
+**Senha padrão para todos:** `123456`
+
+### Materiais por Unidade
+
+Cada unidade possui 4 materiais de tipos variados:
+- Etilômetro, Taser, Colete Balístico, Viatura, Algema, Rádio Comunicador
+
+---
+
+## 10. Próximas Funcionalidades (Roadmap)
+
+- [ ] Cadastro de Materiais (ADMINISTRADOR+)
+- [ ] Edição de Materiais (ADMINISTRADOR+)
+- [ ] Transferência entre Unidades (ADMINISTRADOR+)
+- [ ] Relatórios e Dashboards Gerenciais (GESTOR+)
+- [ ] Gestão de Usuários (SUPER_ADMIN)
+- [ ] Gestão de Unidades (SUPER_ADMIN)
+- [ ] Gestão de Tipos de Material (SUPER_ADMIN)
+- [ ] Auditoria e Logs de Sistema (GESTOR+)
+- [ ] Exportação de Relatórios (PDF/Excel)
+- [ ] Notificações de Materiais em Manutenção prolongada
+
+---
+
+## 11. Comandos Úteis
+
+```bash
+# Instalar dependências
+npm install
+
+# Rodar em desenvolvimento
+npm run dev
+
+# Reset do banco e seed
+npx prisma db push --force-reset
+npx prisma db seed
+
+# Gerar cliente Prisma
+npx prisma generate
+
+# Visualizar banco
+npx prisma studio
+```
+
+---
+
+**Última atualização:** Dezembro/2024

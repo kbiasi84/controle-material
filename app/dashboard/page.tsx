@@ -2,18 +2,8 @@ import { getSession } from '@/lib/auth'
 import { getPermissoesUsuario } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import { MaterialFilters } from '@/components/dashboard/material-filters'
-import { 
-  Zap, 
-  Radio, 
-  Car, 
-  Shield, 
-  ArrowUpFromLine,
-  ArrowDownToLine,
-  CircleDot,
-  Flashlight,
-  Beaker,
-  Lock,
-} from 'lucide-react'
+import { MaterialCard } from '@/components/dashboard/material-card'
+import { Shield } from 'lucide-react'
 
 interface DashboardPageProps {
   searchParams: Promise<{ status?: string; search?: string; tipo?: string }>
@@ -27,9 +17,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   const params = await searchParams
-  const statusFilter = params.status || 'DISPONIVEL' // Default: DISPONIVEL
+  const statusFilter = params.status || 'DISPONIVEL' // Padrão: Disponível
   const searchFilter = params.search || ''
-  const tipoFilter = params.tipo || '' // Vazio = Todos
+  const tipoFilter = params.tipo || ''
 
   const permissoes = await getPermissoesUsuario(session)
   
@@ -38,13 +28,29 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     orderBy: { nome: 'asc' },
   })
 
-  // Busca TODOS os materiais
+  // Busca TODOS os materiais com a movimentação ativa (quem está usando)
   const todosMateriais = await prisma.material.findMany({
     where: { unidadeId: { in: permissoes.unidadesVisiveis } },
     include: {
       tipo: true,
       unidade: true,
+      // Busca a movimentação ativa (sem devolução)
+      movimentacoes: {
+        where: { dataDevolucao: null },
+        include: {
+          usuario: {
+            select: {
+              id: true,
+              nome: true,
+              identificacao: true,
+            }
+          }
+        },
+        take: 1,
+        orderBy: { dataRetirada: 'desc' }
+      }
     },
+    orderBy: { id: 'desc' },
   })
 
   // Filtra materiais baseado no status selecionado
@@ -72,52 +78,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     )
   }
 
-  // Ícone baseado no tipo de material
-  const getIconByType = (tipoNome: string) => {
-    const icons: Record<string, { icon: React.ReactNode; bg: string }> = {
-      'Taser': { icon: <Zap className="w-7 h-7" />, bg: 'bg-teal-600 text-white' },
-      'Rádio Comunicador': { icon: <Radio className="w-7 h-7" />, bg: 'bg-slate-600 text-white' },
-      'Viatura': { icon: <Car className="w-7 h-7" />, bg: 'bg-amber-500 text-white' },
-      'Colete Balístico': { icon: <Shield className="w-7 h-7" />, bg: 'bg-teal-600 text-white' },
-      'Algema': { icon: <Lock className="w-7 h-7" />, bg: 'bg-teal-600 text-white' },
-      'Lanterna Tática': { icon: <Flashlight className="w-7 h-7" />, bg: 'bg-slate-600 text-white' },
-      'Etilômetro': { icon: <Beaker className="w-7 h-7" />, bg: 'bg-teal-600 text-white' },
-    }
-    return icons[tipoNome] || { icon: <Shield className="w-7 h-7" />, bg: 'bg-slate-500 text-white' }
-  }
-
-  // Status config
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'DISPONIVEL':
-        return {
-          badge: 'bg-green-50 text-green-700 border-green-200',
-          dot: 'bg-green-500',
-          text: 'Disponível',
-          iconBg: 'bg-teal-600 text-white'
-        }
-      case 'EM_USO':
-        return {
-          badge: 'bg-red-50 text-red-700 border-red-200',
-          dot: 'bg-red-500',
-          text: 'Em Uso',
-          iconBg: 'bg-slate-400 text-white'
-        }
-      case 'MANUTENCAO':
-        return {
-          badge: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-          dot: 'bg-yellow-500',
-          text: 'Manutenção',
-          iconBg: 'bg-amber-500 text-white'
-        }
-      default:
-        return {
-          badge: 'bg-slate-50 text-slate-700 border-slate-200',
-          dot: 'bg-slate-500',
-          text: status,
-          iconBg: 'bg-slate-500 text-white'
-        }
-    }
+  // Dados do usuário logado para passar aos cards
+  const usuarioLogado = {
+    userId: session.userId,
+    nome: session.nome,
+    perfil: session.perfil,
+    unidadeId: session.unidadeId,
   }
 
   return (
@@ -155,63 +121,29 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {materiaisFiltrados.map((material) => {
-            const iconConfig = getIconByType(material.tipo.nome)
-            const statusConfig = getStatusConfig(material.status)
+            // Pega o usuário que está usando o material (se houver)
+            const movimentacaoAtiva = material.movimentacoes[0]
+            const usuarioEmUso = movimentacaoAtiva?.usuario || null
             
             return (
-              <div 
-                key={material.id} 
-                className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 group flex flex-col"
-              >
-                {/* Header com ícone e info */}
-                <div className="flex items-start gap-4 mb-5">
-                  <div className={`w-14 h-14 rounded-xl ${material.status === 'EM_USO' ? statusConfig.iconBg : material.status === 'MANUTENCAO' ? statusConfig.iconBg : iconConfig.bg} flex items-center justify-center shrink-0 shadow-sm`}>
-                    {iconConfig.icon}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-slate-800 text-lg leading-tight truncate">
-                      {material.descricao || material.tipo.nome}
-                    </h3>
-                    <p className="text-sm text-slate-400 font-mono mt-1">
-                      {material.codigoIdentificacao}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status e Info */}
-                <div className="mb-5 flex-1">
-                  <div className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border ${statusConfig.badge} mb-4`}>
-                    <span className={`w-2 h-2 rounded-full ${statusConfig.dot} mr-2`}></span>
-                    {statusConfig.text}
-                  </div>
-                  
-                  {material.observacaoAtual && (
-                    <p className="text-sm text-slate-500 flex items-center pl-1">
-                      <CircleDot className="w-4 h-4 mr-2 text-slate-400 shrink-0 fill-slate-400" />
-                      <span className="truncate">{material.observacaoAtual}</span>
-                    </p>
-                  )}
-                </div>
-
-                {/* Action Button */}
-                {material.status === 'DISPONIVEL' && (
-                  <button className="w-full py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center bg-blue-600 text-white hover:bg-blue-700 shadow-sm">
-                    <ArrowUpFromLine className="w-5 h-5 mr-2.5" />
-                    Retirar
-                  </button>
-                )}
-                {material.status === 'EM_USO' && (
-                  <button className="w-full py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50">
-                    <ArrowDownToLine className="w-5 h-5 mr-2.5" />
-                    Devolver
-                  </button>
-                )}
-                {material.status === 'MANUTENCAO' && (
-                  <button className="w-full py-3.5 rounded-xl text-base font-bold flex items-center justify-center bg-slate-100 text-slate-400 cursor-not-allowed">
-                    Detalhes
-                  </button>
-                )}
-              </div>
+              <MaterialCard 
+                key={material.id}
+                material={{
+                  id: material.id,
+                  codigoIdentificacao: material.codigoIdentificacao,
+                  descricao: material.descricao,
+                  status: material.status,
+                  observacaoAtual: material.observacaoAtual,
+                  tipo: {
+                    nome: material.tipo.nome
+                  },
+                  usuarioEmUso: usuarioEmUso ? {
+                    id: usuarioEmUso.id,
+                    nome: usuarioEmUso.nome,
+                  } : null
+                }}
+                usuarioLogado={usuarioLogado}
+              />
             )
           })}
         </div>

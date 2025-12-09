@@ -9,14 +9,12 @@ import {
   Edit,
   Trash2,
   Building2,
-  Filter,
   Zap,
   Radio,
   Car,
   Shield,
-  Flashlight,
-  Beaker,
   Lock,
+  Beaker,
 } from 'lucide-react'
 
 export default async function GestaoMateriaisPage() {
@@ -27,7 +25,7 @@ export default async function GestaoMateriaisPage() {
   }
 
   // Verifica se o usuário tem permissão
-  if (session.perfil !== 'GESTOR') {
+  if (session.perfil !== 'GESTOR' && session.perfil !== 'ADMINISTRADOR') {
     redirect('/dashboard?error=unauthorized')
   }
 
@@ -75,7 +73,6 @@ export default async function GestaoMateriaisPage() {
       'Viatura': <Car className="w-5 h-5" />,
       'Colete Balístico': <Shield className="w-5 h-5" />,
       'Algema': <Lock className="w-5 h-5" />,
-      'Lanterna Tática': <Flashlight className="w-5 h-5" />,
       'Etilômetro': <Beaker className="w-5 h-5" />,
     }
     return icons[tipoNome] || <Package className="w-5 h-5" />
@@ -181,7 +178,7 @@ export default async function GestaoMateriaisPage() {
           <Package className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-slate-600">Nenhum material cadastrado</h3>
           <p className="text-slate-400 text-base mt-2">
-            Clique em "Novo Material" para começar a cadastrar.
+            Clique em &quot;Novo Material&quot; para começar a cadastrar.
           </p>
         </div>
       ) : (
@@ -214,7 +211,7 @@ export default async function GestaoMateriaisPage() {
                     <tr key={material.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-teal-600 text-white flex items-center justify-center shrink-0">
+                          <div className="w-10 h-10 rounded-lg bg-orange-500 text-white flex items-center justify-center shrink-0">
                             {getIconByType(material.tipo.nome)}
                           </div>
                           <div>

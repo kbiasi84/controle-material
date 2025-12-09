@@ -11,7 +11,6 @@ import {
   Users,
   Package,
   ChevronRight,
-  MapPin,
 } from 'lucide-react'
 
 export default async function GestaoUnidadesPage() {
@@ -22,7 +21,7 @@ export default async function GestaoUnidadesPage() {
   }
 
   // Verifica se o usuário tem permissão
-  if (session.perfil !== 'GESTOR') {
+  if (session.perfil !== 'GESTOR' && session.perfil !== 'ADMINISTRADOR') {
     redirect('/dashboard?error=unauthorized')
   }
 
@@ -94,8 +93,8 @@ export default async function GestaoUnidadesPage() {
         </div>
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-teal-100 flex items-center justify-center">
-              <Package className="w-6 h-6 text-teal-600" />
+            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+              <Package className="w-6 h-6 text-orange-600" />
             </div>
             <div>
               <p className="text-2xl font-bold text-slate-800">
@@ -130,7 +129,7 @@ export default async function GestaoUnidadesPage() {
             <Building2 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <h3 className="text-xl font-bold text-slate-600">Nenhuma unidade cadastrada</h3>
             <p className="text-slate-400 text-base mt-2">
-              Clique em "Nova Unidade" para começar a cadastrar.
+              Clique em &quot;Nova Unidade&quot; para começar a cadastrar.
             </p>
           </div>
         ) : (
@@ -198,7 +197,7 @@ export default async function GestaoUnidadesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-orange-50 text-orange-700 border border-orange-200">
                         <Package className="w-3.5 h-3.5 mr-1.5" />
                         {unidade.materiais.length}
                       </span>
@@ -243,7 +242,7 @@ function UnidadeCard({
           <div className="flex items-center gap-4">
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
               level === 0 ? 'bg-blue-600 text-white' : 
-              level === 1 ? 'bg-teal-600 text-white' : 
+              level === 1 ? 'bg-orange-500 text-white' : 
               level === 2 ? 'bg-purple-600 text-white' : 
               'bg-slate-600 text-white'
             }`}>

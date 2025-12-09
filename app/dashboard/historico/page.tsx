@@ -1,31 +1,84 @@
 import { getSession } from '@/lib/auth'
-import { getPermissoesUsuario } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import { 
   History, 
   ArrowUpFromLine,
   ArrowDownToLine,
-  Calendar,
-  Search,
   Package,
   CheckCircle,
   Clock,
 } from 'lucide-react'
+import { HistoricoFiltros } from '@/components/dashboard/historico-filtros'
+import { Paginacao } from '@/components/dashboard/paginacao'
 
-export default async function HistoricoPage() {
+const REGISTROS_POR_PAGINA = 15
+
+interface HistoricoPageProps {
+  searchParams: Promise<{ 
+    busca?: string
+    status?: string
+    periodo?: string
+    pagina?: string
+  }>
+}
+
+export default async function HistoricoPage({ searchParams }: HistoricoPageProps) {
   const session = await getSession()
 
   if (!session) {
     return null
   }
 
-  const permissoes = await getPermissoesUsuario(session)
-  
-  // Busca todas as movimentações do usuário
+  // Aguarda os searchParams (Next.js 15+)
+  const params = await searchParams
+
+  // Parâmetros de filtro
+  const busca = params.busca || ''
+  const status = params.status || 'TODOS'
+  const periodo = params.periodo || '30' // Padrão: últimos 30 dias
+  const paginaAtual = parseInt(params.pagina || '1')
+
+  // Monta o where clause
+  const whereClause: any = {
+    usuarioId: session.userId,
+  }
+
+  // Filtro de status
+  if (status === 'EM_POSSE') {
+    whereClause.dataDevolucao = null
+  } else if (status === 'DEVOLVIDO') {
+    whereClause.dataDevolucao = { not: null }
+  }
+
+  // Filtro de período (1 = 24h, 7 = 7 dias, 30 = 30 dias)
+  const dias = parseInt(periodo) || 30
+  const dataLimite = new Date()
+  dataLimite.setDate(dataLimite.getDate() - dias)
+  whereClause.dataRetirada = { gte: dataLimite }
+
+  // Filtro de busca
+  if (busca.length >= 3) {
+    whereClause.material = {
+      OR: [
+        { codigoIdentificacao: { contains: busca, mode: 'insensitive' } },
+        { descricao: { contains: busca, mode: 'insensitive' } },
+        { tipo: { nome: { contains: busca, mode: 'insensitive' } } },
+      ],
+    }
+  }
+
+  // Conta total de registros
+  const totalRegistros = await prisma.movimentacao.count({
+    where: whereClause,
+  })
+
+  // Calcula paginação
+  const totalPaginas = Math.ceil(totalRegistros / REGISTROS_POR_PAGINA)
+  const skip = (paginaAtual - 1) * REGISTROS_POR_PAGINA
+
+  // Busca movimentações com paginação
   const movimentacoes = await prisma.movimentacao.findMany({
-    where: {
-      usuarioId: session.userId,
-    },
+    where: whereClause,
     include: {
       material: {
         include: {
@@ -35,7 +88,8 @@ export default async function HistoricoPage() {
       },
     },
     orderBy: { dataRetirada: 'desc' },
-    take: 50,
+    skip,
+    take: REGISTROS_POR_PAGINA,
   })
 
   const formatDate = (date: Date) => {
@@ -48,68 +102,32 @@ export default async function HistoricoPage() {
     }).format(new Date(date))
   }
 
-  // Conta retiradas e devoluções
-  const emPosse = movimentacoes.filter(m => !m.dataDevolucao).length
-  const devolvidos = movimentacoes.filter(m => m.dataDevolucao).length
-
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800">Histórico de Movimentações</h2>
-          <p className="text-slate-500 mt-1">
-            Registro de todas as suas retiradas e devoluções
-          </p>
-        </div>
-        
-        {/* Stats Badges */}
-        <div className="flex gap-3">
-          <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-base font-bold bg-orange-100 text-orange-800 border-2 border-orange-200">
-            <Clock className="w-5 h-5 mr-2.5" />
-            {emPosse} Em Posse
-          </span>
-          <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-base font-bold bg-green-100 text-green-800 border-2 border-green-200">
-            <CheckCircle className="w-5 h-5 mr-2.5" />
-            {devolvidos} Devolvidos
-          </span>
-        </div>
+      <div>
+        <h2 className="text-2xl font-bold text-slate-800">Histórico de Movimentações</h2>
+        <p className="text-slate-500 mt-1">
+          Registro de todas as suas retiradas e devoluções
+        </p>
       </div>
 
       {/* Filtros */}
-      <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
-        <div className="flex flex-col md:flex-row gap-4 items-center">
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input 
-              type="text"
-              placeholder="Buscar por código ou nome do material..." 
-              className="w-full h-12 pl-12 pr-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors"
-            />
-          </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <select className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors">
-              <option>Todos os Status</option>
-              <option>Em Posse</option>
-              <option>Devolvido</option>
-            </select>
-            <select className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors">
-              <option>Últimos 30 dias</option>
-              <option>Últimos 7 dias</option>
-              <option>Hoje</option>
-              <option>Todo período</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <HistoricoFiltros />
 
       {/* Lista de Movimentações */}
       {movimentacoes.length === 0 ? (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
           <History className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-slate-600">Nenhuma movimentação registrada</h3>
+          <h3 className="text-xl font-bold text-slate-600">
+            {busca.length >= 3 || status !== 'TODOS'
+              ? 'Nenhum resultado encontrado' 
+              : 'Nenhuma movimentação registrada'}
+          </h3>
           <p className="text-slate-400 text-base mt-2">
-            Seu histórico aparecerá aqui quando você retirar ou devolver materiais.
+            {busca.length >= 3 || status !== 'TODOS'
+              ? 'Tente ajustar os filtros para ver mais resultados.'
+              : 'Seu histórico aparecerá aqui quando você retirar ou devolver materiais.'}
           </p>
         </div>
       ) : (
@@ -205,6 +223,15 @@ export default async function HistoricoPage() {
               </tbody>
             </table>
           </div>
+          
+          {/* Paginação */}
+          <Paginacao
+            paginaAtual={paginaAtual}
+            totalPaginas={totalPaginas}
+            totalRegistros={totalRegistros}
+            registrosPorPagina={REGISTROS_POR_PAGINA}
+            baseUrl="/dashboard/historico"
+          />
         </div>
       )}
     </div>

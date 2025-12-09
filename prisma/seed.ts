@@ -11,132 +11,84 @@ const prisma = new PrismaClient({ adapter })
 async function main() {
   console.log('🌱 Iniciando seed do banco de dados...')
 
+  // Limpar dados existentes (na ordem correta por causa das FKs)
+  console.log('🗑️ Limpando dados existentes...')
+  await prisma.movimentacao.deleteMany()
+  await prisma.transferencia.deleteMany()
+  await prisma.material.deleteMany()
+  await prisma.usuario.deleteMany()
+  await prisma.unidade.deleteMany()
+  await prisma.tipoMaterial.deleteMany()
+  console.log('  ✅ Dados limpos')
+
   // --- HIERARQUIA DE UNIDADES ---
-  console.log('🏛️ Criando Hierarquia de Unidades...')
+  console.log('\n🏛️ Criando Hierarquia de Unidades...')
 
-  // Nível 1: CPRv (Topo da hierarquia)
-  const cprv = await prisma.unidade.upsert({
-    where: { nome: 'CPRv' },
-    update: {},
-    create: {
-      nome: 'CPRv',
-      sigla: 'CPRv',
-      endereco: 'Comando Regional',
-    },
-  })
-  console.log(`  ✅ ${cprv.nome} (id: ${cprv.id})`)
-
-  // Nível 2: BPRv (subordinado ao CPRv)
-  const bprv2 = await prisma.unidade.upsert({
-    where: { nome: '2º BPRv' },
-    update: {},
-    create: {
-      nome: '2º BPRv',
-      sigla: 'BPRv',
-      endereco: '2º Batalhão',
-      unidadeSuperiorId: cprv.id,
-    },
-  })
-  console.log(`    ↳ ${bprv2.nome} (id: ${bprv2.id})`)
-
-  const bprv3 = await prisma.unidade.upsert({
-    where: { nome: '3º BPRv' },
-    update: {},
-    create: {
+  // Nível 1: 3º BPRv (Topo da hierarquia)
+  const bprv3 = await prisma.unidade.create({
+    data: {
       nome: '3º BPRv',
-      sigla: 'BPRv',
-      endereco: '3º Batalhão',
-      unidadeSuperiorId: cprv.id,
+      sigla: '3BPRv',
+      endereco: '3º Batalhão de Polícia Rodoviária',
     },
   })
-  console.log(`    ↳ ${bprv3.nome} (id: ${bprv3.id})`)
+  console.log(`  ✅ ${bprv3.nome} (id: ${bprv3.id})`)
 
-  // Nível 3: CIA (subordinada ao BPRv)
-  const cia1 = await prisma.unidade.upsert({
-    where: { nome: '1ª CIA' },
-    update: {},
-    create: {
-      nome: '1ª CIA',
-      sigla: 'CIA',
-      endereco: '1ª Companhia',
-      unidadeSuperiorId: bprv2.id,
-    },
-  })
-  console.log(`      ↳ ${cia1.nome} (id: ${cia1.id})`)
-
-  const cia3 = await prisma.unidade.upsert({
-    where: { nome: '3ª CIA' },
-    update: {},
-    create: {
+  // Nível 2: 3ª CIA (subordinada ao 3º BPRv)
+  const cia3 = await prisma.unidade.create({
+    data: {
       nome: '3ª CIA',
-      sigla: 'CIA',
+      sigla: '3CIA',
       endereco: '3ª Companhia',
-      unidadeSuperiorId: bprv2.id,
+      unidadeSuperiorId: bprv3.id,
     },
   })
-  console.log(`      ↳ ${cia3.nome} (id: ${cia3.id})`)
+  console.log(`    ↳ ${cia3.nome} (id: ${cia3.id})`)
 
-  // Nível 4: PEL (subordinado à CIA)
-  const pel1 = await prisma.unidade.upsert({
-    where: { nome: '1º PEL' },
-    update: {},
-    create: {
-      nome: '1º PEL',
-      sigla: 'PEL',
-      endereco: '1º Pelotão',
-      unidadeSuperiorId: cia1.id,
-    },
-  })
-  console.log(`        ↳ ${pel1.nome} (id: ${pel1.id})`)
-
-  const pel2 = await prisma.unidade.upsert({
-    where: { nome: '2º PEL' },
-    update: {},
-    create: {
-      nome: '2º PEL',
-      sigla: 'PEL',
-      endereco: '2º Pelotão',
+  // Nível 3: 3º PEL (subordinado à 3ª CIA)
+  const pel3 = await prisma.unidade.create({
+    data: {
+      nome: '3º PEL',
+      sigla: '3PEL',
+      endereco: '3º Pelotão',
       unidadeSuperiorId: cia3.id,
     },
   })
-  console.log(`        ↳ ${pel2.nome} (id: ${pel2.id})`)
+  console.log(`      ↳ ${pel3.nome} (id: ${pel3.id})`)
 
-  // Nível 5: BOP (subordinada ao PEL)
-  const bop320_3 = await prisma.unidade.upsert({
-    where: { nome: 'BOP 320/3' },
-    update: {},
-    create: {
-      nome: 'BOP 320/3',
-      sigla: 'BOP',
-      endereco: 'Base Operacional 320/3',
-      unidadeSuperiorId: pel1.id,
+  // Nível 4: BOPs (subordinadas ao 3º PEL)
+  const bop320_1 = await prisma.unidade.create({
+    data: {
+      nome: 'BOP 320/1',
+      sigla: 'BOP1',
+      endereco: 'Base Operacional 320/1',
+      unidadeSuperiorId: pel3.id,
     },
   })
-  console.log(`          ↳ ${bop320_3.nome} (id: ${bop320_3.id})`)
+  console.log(`        ↳ ${bop320_1.nome} (id: ${bop320_1.id})`)
 
-  const bop320_2 = await prisma.unidade.upsert({
-    where: { nome: 'BOP 320/2' },
-    update: {},
-    create: {
+  const bop320_2 = await prisma.unidade.create({
+    data: {
       nome: 'BOP 320/2',
-      sigla: 'BOP',
+      sigla: 'BOP2',
       endereco: 'Base Operacional 320/2',
-      unidadeSuperiorId: pel1.id,
+      unidadeSuperiorId: pel3.id,
     },
   })
-  console.log(`          ↳ ${bop320_2.nome} (id: ${bop320_2.id})`)
+  console.log(`        ↳ ${bop320_2.nome} (id: ${bop320_2.id})`)
 
-  const bopCentro = await prisma.unidade.upsert({
-    where: { nome: 'BOP Centro' },
-    update: {},
-    create: {
-      nome: 'BOP Centro',
-      sigla: 'BOP',
-      endereco: 'Base Operacional Centro',
-      unidadeSuperiorId: pel2.id,
+  const bop320_3 = await prisma.unidade.create({
+    data: {
+      nome: 'BOP 320/3',
+      sigla: 'BOP3',
+      endereco: 'Base Operacional 320/3',
+      unidadeSuperiorId: pel3.id,
     },
   })
-  console.log(`          ↳ ${bopCentro.nome} (id: ${bopCentro.id})`)
+  console.log(`        ↳ ${bop320_3.nome} (id: ${bop320_3.id})`)
+
+  // Array de todas as unidades para facilitar o loop
+  const unidades = [bprv3, cia3, pel3, bop320_1, bop320_2, bop320_3]
 
   // --- TIPOS DE MATERIAL ---
   console.log('\n📦 Criando Tipos de Material...')
@@ -159,151 +111,129 @@ async function main() {
     'Impressora',
   ]
 
+  const tiposCriados: { id: number; nome: string }[] = []
   for (const nome of tiposMaterial) {
-    await prisma.tipoMaterial.upsert({
-      where: { nome },
-      update: {},
-      create: { nome },
+    const tipo = await prisma.tipoMaterial.create({
+      data: { nome },
     })
+    tiposCriados.push(tipo)
   }
   console.log(`  ✅ ${tiposMaterial.length} Tipos de Material criados`)
 
-  // Buscar tipos criados para usar nas referências
-  const tipoTaser = await prisma.tipoMaterial.findUnique({ where: { nome: 'Taser' } })
-  const tipoRadio = await prisma.tipoMaterial.findUnique({ where: { nome: 'Rádio Comunicador' } })
-  const tipoViatura = await prisma.tipoMaterial.findUnique({ where: { nome: 'Viatura' } })
-  const tipoColete = await prisma.tipoMaterial.findUnique({ where: { nome: 'Colete Balístico' } })
-  const tipoAlgema = await prisma.tipoMaterial.findUnique({ where: { nome: 'Algema' } })
-  const tipoLanterna = await prisma.tipoMaterial.findUnique({ where: { nome: 'Lanterna Tática' } })
-  const tipoEtilometro = await prisma.tipoMaterial.findUnique({ where: { nome: 'Etilômetro' } })
-
-  // --- MATERIAIS DE EXEMPLO ---
-  console.log('\n🔧 Criando Materiais de Exemplo...')
-
-  const materiaisExemplo = [
-    { codigo: 'TAS-001', descricao: 'Taser X26', tipoId: tipoTaser!.id, unidadeId: bop320_3.id, status: 'DISPONIVEL', obs: 'Bateria 85%' },
-    { codigo: 'RAD-550', descricao: 'Rádio HT Motorola', tipoId: tipoRadio!.id, unidadeId: bop320_3.id, status: 'EM_USO', obs: null },
-    { codigo: 'VTR-900', descricao: 'Viatura SW4', tipoId: tipoViatura!.id, unidadeId: bop320_3.id, status: 'MANUTENCAO', obs: 'Pneu traseiro furado' },
-    { codigo: 'COL-102', descricao: 'Colete Balístico G2', tipoId: tipoColete!.id, unidadeId: bop320_3.id, status: 'DISPONIVEL', obs: 'Venc: 12/2026' },
-    { codigo: 'ALG-045', descricao: 'Algemas Inox', tipoId: tipoAlgema!.id, unidadeId: bop320_3.id, status: 'DISPONIVEL', obs: 'Chaves inclusas' },
-    { codigo: 'LAN-099', descricao: 'Lanterna Tática', tipoId: tipoLanterna!.id, unidadeId: bop320_3.id, status: 'EM_USO', obs: null },
-    { codigo: 'ETI-500', descricao: 'Etilômetro Digital', tipoId: tipoEtilometro!.id, unidadeId: bop320_3.id, status: 'DISPONIVEL', obs: 'Calibrado' },
-    { codigo: 'TAS-002', descricao: 'Taser X26 Pro', tipoId: tipoTaser!.id, unidadeId: bop320_2.id, status: 'DISPONIVEL', obs: null },
-    { codigo: 'RAD-551', descricao: 'Rádio HT Motorola', tipoId: tipoRadio!.id, unidadeId: bop320_2.id, status: 'DISPONIVEL', obs: null },
-    { codigo: 'COL-103', descricao: 'Colete Balístico G3', tipoId: tipoColete!.id, unidadeId: pel1.id, status: 'DISPONIVEL', obs: null },
-  ]
-
-  for (const mat of materiaisExemplo) {
-    await prisma.material.upsert({
-      where: { codigoIdentificacao: mat.codigo },
-      update: {},
-      create: {
-        codigoIdentificacao: mat.codigo,
-        descricao: mat.descricao,
-        tipoId: mat.tipoId,
-        unidadeId: mat.unidadeId,
-        status: mat.status as 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO',
-        observacaoAtual: mat.obs,
-      },
-    })
-  }
-  console.log(`  ✅ ${materiaisExemplo.length} Materiais criados`)
-
-  // --- USUÁRIOS DE EXEMPLO (3 perfis: GESTOR, CONTROLADOR, USUARIO) ---
-  console.log('\n👥 Criando Usuários de Exemplo...')
+  // --- USUÁRIOS (2 por unidade) ---
+  console.log('\n👥 Criando Usuários (2 por unidade)...')
 
   const senhaHash = await bcrypt.hash('123456', 10)
 
-  // GESTOR - CPRv (Cel. - Visão Global)
-  await prisma.usuario.upsert({
-    where: { identificacao: 'cel.silva' },
-    update: {},
-    create: {
-      identificacao: 'cel.silva',
-      nome: 'Cel. Silva - Comandante CPRv',
-      senha: senhaHash,
-      perfil: 'GESTOR',
-      unidadeId: cprv.id,
-    },
-  })
-  console.log(`  ✅ cel.silva (GESTOR) → ${cprv.nome}`)
+  // Configuração de usuários por unidade
+  const usuariosPorUnidade = [
+    // 3º BPRv - Gestores
+    { unidade: bprv3, usuarios: [
+      { id: 'maj.silva', nome: 'Maj. Silva', perfil: 'GESTOR' },
+      { id: 'cap.almeida', nome: 'Cap. Almeida', perfil: 'GESTOR' },
+    ]},
+    // 3ª CIA - Gestores
+    { unidade: cia3, usuarios: [
+      { id: 'cap.santos', nome: 'Cap. Santos', perfil: 'GESTOR' },
+      { id: 'ten.oliveira', nome: 'Ten. Oliveira', perfil: 'CONTROLADOR' },
+    ]},
+    // 3º PEL - Controladores
+    { unidade: pel3, usuarios: [
+      { id: 'sgt.costa', nome: 'Sgt. Costa', perfil: 'CONTROLADOR' },
+      { id: 'sgt.ferreira', nome: 'Sgt. Ferreira', perfil: 'CONTROLADOR' },
+    ]},
+    // BOP 320/1 - Usuários
+    { unidade: bop320_1, usuarios: [
+      { id: 'cb.lima', nome: 'Cb. Lima', perfil: 'USUARIO' },
+      { id: 'sd.martins', nome: 'Sd. Martins', perfil: 'USUARIO' },
+    ]},
+    // BOP 320/2 - Usuários
+    { unidade: bop320_2, usuarios: [
+      { id: 'cb.souza', nome: 'Cb. Souza', perfil: 'USUARIO' },
+      { id: 'sd.rodrigues', nome: 'Sd. Rodrigues', perfil: 'USUARIO' },
+    ]},
+    // BOP 320/3 - Usuários
+    { unidade: bop320_3, usuarios: [
+      { id: 'cb.pereira', nome: 'Cb. Pereira', perfil: 'CONTROLADOR' },
+      { id: 'sd.gomes', nome: 'Sd. Gomes', perfil: 'USUARIO' },
+    ]},
+  ]
 
-  // GESTOR - BPRv (Maj. - Visão Regional)
-  await prisma.usuario.upsert({
-    where: { identificacao: 'maj.santos' },
-    update: {},
-    create: {
-      identificacao: 'maj.santos',
-      nome: 'Maj. Santos - Comandante 2º BPRv',
-      senha: senhaHash,
-      perfil: 'GESTOR',
-      unidadeId: bprv2.id,
-    },
-  })
-  console.log(`  ✅ maj.santos (GESTOR) → ${bprv2.nome}`)
+  for (const config of usuariosPorUnidade) {
+    for (const usr of config.usuarios) {
+      await prisma.usuario.create({
+        data: {
+          identificacao: usr.id,
+          nome: usr.nome,
+          senha: senhaHash,
+          perfil: usr.perfil as 'GESTOR' | 'CONTROLADOR' | 'USUARIO',
+          unidadeId: config.unidade.id,
+        },
+      })
+      console.log(`  ✅ ${usr.id} (${usr.perfil}) → ${config.unidade.nome}`)
+    }
+  }
 
-  // GESTOR - CIA (Cap. - Visão Tática)
-  await prisma.usuario.upsert({
-    where: { identificacao: 'cap.oliveira' },
-    update: {},
-    create: {
-      identificacao: 'cap.oliveira',
-      nome: 'Cap. Oliveira - Comandante 1ª CIA',
-      senha: senhaHash,
-      perfil: 'GESTOR',
-      unidadeId: cia1.id,
-    },
-  })
-  console.log(`  ✅ cap.oliveira (GESTOR) → ${cia1.nome}`)
+  // --- MATERIAIS (4 por unidade, todos DISPONIVEL) ---
+  console.log('\n🔧 Criando Materiais (4 por unidade)...')
 
-  // CONTROLADOR - PEL (Sgt. - Gestão Local)
-  await prisma.usuario.upsert({
-    where: { identificacao: 'sgt.costa' },
-    update: {},
-    create: {
-      identificacao: 'sgt.costa',
-      nome: 'Sgt. Costa - Controlador 1º PEL',
-      senha: senhaHash,
-      perfil: 'CONTROLADOR',
-      unidadeId: pel1.id,
-    },
-  })
-  console.log(`  ✅ sgt.costa (CONTROLADOR) → ${pel1.nome}`)
+  // Função para gerar código único
+  let codigoCounter = 1
+  const gerarCodigo = (tipo: string) => {
+    const prefixo = tipo.substring(0, 3).toUpperCase()
+    return `${prefixo}-${String(codigoCounter++).padStart(3, '0')}`
+  }
 
-  // USUARIO - BOP (Sd. - Operacional)
-  await prisma.usuario.upsert({
-    where: { identificacao: 'sd.pereira' },
-    update: {},
-    create: {
-      identificacao: 'sd.pereira',
-      nome: 'Sd. Pereira - BOP 320/3',
-      senha: senhaHash,
-      perfil: 'USUARIO',
-      unidadeId: bop320_3.id,
-    },
-  })
-  console.log(`  ✅ sd.pereira (USUARIO) → ${bop320_3.nome}`)
+  // Função para pegar tipo aleatório
+  const tipoAleatorio = () => tiposCriados[Math.floor(Math.random() * tiposCriados.length)]
+
+  for (const unidade of unidades) {
+    for (let i = 0; i < 4; i++) {
+      const tipo = tipoAleatorio()
+      const codigo = gerarCodigo(tipo.nome)
+      
+      await prisma.material.create({
+        data: {
+          codigoIdentificacao: codigo,
+          descricao: `${tipo.nome} - ${unidade.sigla}`,
+          tipoId: tipo.id,
+          unidadeId: unidade.id,
+          status: 'DISPONIVEL',
+          observacaoAtual: null,
+        },
+      })
+    }
+    console.log(`  ✅ 4 materiais criados para ${unidade.nome}`)
+  }
 
   console.log('\n🎉 Seed concluído com sucesso!')
   console.log('\n📋 Resumo da Hierarquia:')
   console.log(`
-  CPRv (GESTOR: cel.silva)
-    ↳ 2º BPRv (GESTOR: maj.santos)
-    │   ↳ 1ª CIA (GESTOR: cap.oliveira)
-    │   │   ↳ 1º PEL (CONTROLADOR: sgt.costa)
-    │   │       ↳ BOP 320/3 (USUARIO: sd.pereira)
-    │   │       ↳ BOP 320/2
-    │   ↳ 3ª CIA
-    │       ↳ 2º PEL
-    │           ↳ BOP Centro
-    ↳ 3º BPRv
+  3º BPRv (GESTOR: maj.silva, cap.almeida)
+    ↳ 3ª CIA (GESTOR: cap.santos | CONTROLADOR: ten.oliveira)
+        ↳ 3º PEL (CONTROLADOR: sgt.costa, sgt.ferreira)
+            ↳ BOP 320/1 (USUARIO: cb.lima, sd.martins)
+            ↳ BOP 320/2 (USUARIO: cb.souza, sd.rodrigues)
+            ↳ BOP 320/3 (CONTROLADOR: cb.pereira | USUARIO: sd.gomes)
   `)
+  console.log('📦 Total de materiais: 24 (4 por unidade)')
+  console.log('👥 Total de usuários: 12 (2 por unidade)')
   console.log('\n🔑 Logins de teste (senha: 123456):')
-  console.log('   • cel.silva   (GESTOR - vê tudo)')
-  console.log('   • maj.santos  (GESTOR - vê 2º BPRv e abaixo)')
-  console.log('   • cap.oliveira (GESTOR - vê 1ª CIA e abaixo)')
-  console.log('   • sgt.costa   (CONTROLADOR - apenas 1º PEL)')
-  console.log('   • sd.pereira  (USUARIO - apenas BOP 320/3)')
+  console.log('   GESTORES:')
+  console.log('     • maj.silva    (3º BPRv - vê tudo)')
+  console.log('     • cap.almeida  (3º BPRv - vê tudo)')
+  console.log('     • cap.santos   (3ª CIA - vê CIA e abaixo)')
+  console.log('   CONTROLADORES:')
+  console.log('     • ten.oliveira (3ª CIA)')
+  console.log('     • sgt.costa    (3º PEL)')
+  console.log('     • sgt.ferreira (3º PEL)')
+  console.log('     • cb.pereira   (BOP 320/3)')
+  console.log('   USUARIOS:')
+  console.log('     • cb.lima      (BOP 320/1)')
+  console.log('     • sd.martins   (BOP 320/1)')
+  console.log('     • cb.souza     (BOP 320/2)')
+  console.log('     • sd.rodrigues (BOP 320/2)')
+  console.log('     • sd.gomes     (BOP 320/3)')
 }
 
 main()

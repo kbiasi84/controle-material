@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
+import { getHierarquiaUnidade } from '@/lib/unidade'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
 
@@ -13,6 +14,9 @@ export default async function DashboardLayout({
   if (!session) {
     redirect('/login')
   }
+
+  // Busca a hierarquia da unidade do usuário
+  const hierarquiaUnidade = await getHierarquiaUnidade(session.unidadeId)
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-100">
@@ -31,6 +35,7 @@ export default async function DashboardLayout({
         <Header
           userName={session.nome}
           unidadeNome={session.unidadeNome}
+          hierarquiaUnidade={hierarquiaUnidade}
           perfil={session.perfil}
         />
 
@@ -42,4 +47,3 @@ export default async function DashboardLayout({
     </div>
   )
 }
-

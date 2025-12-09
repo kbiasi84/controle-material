@@ -1,5 +1,4 @@
 import { getSession } from '@/lib/auth'
-import { getPermissoesUsuario } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import { 
   ShoppingBag, 
@@ -16,7 +15,8 @@ export default async function MinhasRetiradasPage() {
     return null
   }
 
-  const permissoes = await getPermissoesUsuario(session)
+  // Verifica se o usuário pode devolver (apenas CONTROLADOR e GESTOR)
+  const podeDevolver = session.perfil === 'CONTROLADOR' || session.perfil === 'GESTOR'
   
   // Busca movimentações do usuário (materiais em uso - sem data de devolução)
   const movimentacoes = await prisma.movimentacao.findMany({
@@ -75,15 +75,15 @@ export default async function MinhasRetiradasPage() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {movimentacoes.map((mov) => (
             <div 
               key={mov.id} 
-              className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 flex flex-col"
+              className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 group flex flex-col"
             >
-              {/* Header */}
+              {/* Header com ícone e info */}
               <div className="flex items-start gap-4 mb-5">
-                <div className="w-14 h-14 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <div className="w-14 h-14 rounded-xl bg-slate-400 text-white flex items-center justify-center shrink-0 shadow-sm">
                   <Package className="w-7 h-7" />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -96,31 +96,33 @@ export default async function MinhasRetiradasPage() {
                 </div>
               </div>
 
-              {/* Info */}
-              <div className="mb-5 flex-1 space-y-3">
-                <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-blue-50 text-blue-700 border-blue-200">
-                  <span className="w-2 h-2 rounded-full bg-blue-500 mr-2"></span>
-                  Em Posse
+              {/* Status e Info */}
+              <div className="mb-5 flex-1 space-y-2">
+                <div className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold border bg-red-50 text-red-700 border-red-200">
+                  <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
+                  Em Uso
                 </div>
                 
-                <div className="flex items-center text-sm text-slate-500">
-                  <Calendar className="w-4 h-4 mr-2 text-slate-400" />
+                <p className="text-sm text-slate-500 flex items-center">
+                  <Calendar className="w-4 h-4 mr-2 text-slate-400 shrink-0" />
                   <span>Retirado em: {formatDate(mov.dataRetirada)}</span>
-                </div>
+                </p>
 
                 {mov.obsRetirada && (
-                  <div className="flex items-start text-sm text-slate-500">
-                    <AlertCircle className="w-4 h-4 mr-2 text-slate-400 mt-0.5" />
-                    <span>{mov.obsRetirada}</span>
-                  </div>
+                  <p className="text-sm text-slate-500 flex items-start">
+                    <AlertCircle className="w-4 h-4 mr-2 text-slate-400 shrink-0 mt-0.5" />
+                    <span className="truncate">{mov.obsRetirada}</span>
+                  </p>
                 )}
               </div>
 
-              {/* Action Button */}
-              <button className="w-full py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400">
-                <ArrowDownToLine className="w-5 h-5 mr-2.5" />
-                Devolver
-              </button>
+              {/* Action Button - Apenas para CONTROLADOR e GESTOR */}
+              {podeDevolver && (
+                <button className="w-full py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50">
+                  <ArrowDownToLine className="w-5 h-5 mr-2.5" />
+                  Devolver
+                </button>
+              )}
             </div>
           ))}
         </div>
