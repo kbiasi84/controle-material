@@ -8,6 +8,7 @@ import { revalidatePath } from 'next/cache'
 interface CriarUnidadeParams {
   nome: string
   sigla?: string
+  endereco?: string
   unidadeSuperiorId?: number
 }
 
@@ -15,6 +16,7 @@ interface EditarUnidadeParams {
   id: number
   nome: string
   sigla?: string
+  endereco?: string
   unidadeSuperiorId?: number | null
 }
 
@@ -51,6 +53,7 @@ export async function criarUnidade(params: CriarUnidadeParams): Promise<{ succes
       data: {
         nome: params.nome,
         sigla: params.sigla || null,
+        endereco: params.endereco || null,
         unidadeSuperiorId: params.unidadeSuperiorId || null,
       }
     })
@@ -114,6 +117,7 @@ export async function editarUnidade(params: EditarUnidadeParams): Promise<{ succ
       data: {
         nome: params.nome,
         sigla: params.sigla || null,
+        endereco: params.endereco || null,
         unidadeSuperiorId: params.unidadeSuperiorId,
       }
     })

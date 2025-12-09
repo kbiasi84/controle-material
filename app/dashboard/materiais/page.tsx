@@ -100,6 +100,15 @@ export default async function GestaoMateriaisPage({ searchParams }: PageProps) {
     include: {
       tipo: true,
       unidade: true,
+      // Busca última movimentação para pegar quem enviou para manutenção
+      movimentacoes: {
+        orderBy: { dataDevolucao: 'desc' },
+        take: 1,
+        where: { dataDevolucao: { not: null } },
+        include: {
+          respDevolucao: { select: { nome: true } }
+        }
+      }
     },
     orderBy: { id: 'desc' },
     skip,
@@ -116,16 +125,26 @@ export default async function GestaoMateriaisPage({ searchParams }: PageProps) {
 
   return (
     <MateriaisGestao 
-      materiais={materiais.map(m => ({
-        id: m.id,
-        codigoIdentificacao: m.codigoIdentificacao,
-        descricao: m.descricao,
-        status: m.status,
-        tipoId: m.tipoId,
-        unidadeId: m.unidadeId,
-        tipo: { nome: m.tipo.nome },
-        unidade: { nome: m.unidade.nome },
-      }))}
+      materiais={materiais.map(m => {
+        // Pega quem enviou para manutenção (última devolução)
+        const ultimaMovimentacao = m.movimentacoes[0]
+        const enviadoManutencaoPor = m.status === 'MANUTENCAO' && ultimaMovimentacao?.respDevolucao
+          ? ultimaMovimentacao.respDevolucao.nome
+          : null
+
+        return {
+          id: m.id,
+          codigoIdentificacao: m.codigoIdentificacao,
+          descricao: m.descricao,
+          status: m.status,
+          observacaoAtual: m.observacaoAtual,
+          enviadoManutencaoPor,
+          tipoId: m.tipoId,
+          unidadeId: m.unidadeId,
+          tipo: { nome: m.tipo.nome },
+          unidade: { nome: m.unidade.nome },
+        }
+      })}
       tipos={tiposMaterial.map(t => ({ id: t.id, nome: t.nome }))}
       unidades={unidades.map(u => ({ id: u.id, nome: u.nome }))}
       paginaAtual={paginaAtual}

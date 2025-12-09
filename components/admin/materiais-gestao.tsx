@@ -17,9 +17,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  Wrench,
+  X,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
 } from 'lucide-react'
 import { ModalMaterial } from './modal-material'
 import { ModalExcluirMaterial } from './modal-excluir-material'
+import { concluirManutencao } from '@/app/dashboard/manutencao-actions'
 
 interface TipoMaterial {
   id: number
@@ -36,6 +42,8 @@ interface Material {
   codigoIdentificacao: string
   descricao: string
   status: 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO' | 'INATIVO'
+  observacaoAtual: string | null
+  enviadoManutencaoPor: string | null
   tipoId: number
   unidadeId: number
   tipo: { nome: string }
@@ -70,6 +78,7 @@ export function MateriaisGestao({
   const [modalNovoOpen, setModalNovoOpen] = useState(false)
   const [materialEditando, setMaterialEditando] = useState<Material | null>(null)
   const [materialExcluindo, setMaterialExcluindo] = useState<Material | null>(null)
+  const [materialManutencao, setMaterialManutencao] = useState<Material | null>(null)
 
   // Estados dos filtros
   const currentTipo = searchParams.get('tipo') || ''
@@ -298,6 +307,15 @@ export function MateriaisGestao({
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
+                          {material.status === 'MANUTENCAO' && (
+                            <button 
+                              onClick={() => setMaterialManutencao(material)}
+                              className="p-2.5 rounded-lg text-yellow-600 hover:bg-yellow-50 transition-colors"
+                              title="Concluir Manutenção"
+                            >
+                              <Wrench className="w-5 h-5" />
+                            </button>
+                          )}
                           <button 
                             onClick={() => setMaterialEditando(material)}
                             className="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
@@ -404,6 +422,168 @@ export function MateriaisGestao({
         onClose={() => setMaterialExcluindo(null)}
         material={materialExcluindo}
       />
+
+      {/* Modal Concluir Manutenção */}
+      <ModalConcluirManutencao
+        isOpen={!!materialManutencao}
+        onClose={() => setMaterialManutencao(null)}
+        material={materialManutencao}
+      />
+    </div>
+  )
+}
+
+// ============ MODAL CONCLUIR MANUTENÇÃO ============
+
+interface ModalConcluirManutencaoProps {
+  isOpen: boolean
+  onClose: () => void
+  material: Material | null
+}
+
+function ModalConcluirManutencao({ isOpen, onClose, material }: ModalConcluirManutencaoProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [resultado, setResultado] = useState<{ success: boolean; message: string } | null>(null)
+
+  const handleConcluir = async () => {
+    if (!material) return
+
+    setIsLoading(true)
+    setResultado(null)
+
+    try {
+      const result = await concluirManutencao(material.id)
+      setResultado(result)
+
+      if (result.success) {
+        setTimeout(() => {
+          handleClose()
+        }, 1500)
+      }
+    } catch {
+      setResultado({ success: false, message: 'Erro ao processar a operação.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleClose = () => {
+    setResultado(null)
+    onClose()
+  }
+
+  if (!isOpen || !material) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+      
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-yellow-100 flex items-center justify-center">
+              <Wrench className="w-6 h-6 text-yellow-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Material em Manutenção</h2>
+              <p className="text-sm text-slate-500">Verificar e concluir manutenção</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleClose}
+            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          {/* Resultado */}
+          {resultado && (
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
+              resultado.success 
+                ? 'bg-green-50 text-green-800 border border-green-200' 
+                : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
+              {resultado.success ? (
+                <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+              )}
+              <p className="text-sm font-medium">{resultado.message}</p>
+            </div>
+          )}
+
+          {!resultado?.success && (
+            <>
+              {/* Info do Material */}
+              <div className="bg-slate-50 rounded-xl p-4 mb-4">
+                <p className="font-bold text-slate-800">{material.descricao || material.tipo.nome}</p>
+                <p className="text-sm text-slate-500 font-mono">{material.codigoIdentificacao}</p>
+                <p className="text-sm text-slate-400 mt-1">{material.unidade.nome}</p>
+                {material.enviadoManutencaoPor && (
+                  <p className="text-sm text-slate-500 mt-2">
+                    <span className="font-medium">Enviado por:</span> {material.enviadoManutencaoPor}
+                  </p>
+                )}
+              </div>
+
+              {/* Observação da Manutenção */}
+              {material.observacaoAtual && (
+                <div className="mb-6">
+                  <label className="block text-sm font-bold text-slate-700 mb-2">
+                    Motivo da Manutenção:
+                  </label>
+                  <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-4">
+                    <p className="text-yellow-800">{material.observacaoAtual}</p>
+                  </div>
+                </div>
+              )}
+
+              {!material.observacaoAtual && (
+                <p className="text-sm text-slate-500 mb-6">
+                  Nenhuma observação registrada para esta manutenção.
+                </p>
+              )}
+
+              <p className="text-sm text-slate-500 mb-6">
+                Ao concluir, o material voltará ao status <strong>Disponível</strong>.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex-1 h-12 rounded-xl text-base font-bold border-2 border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConcluir}
+                  disabled={isLoading}
+                  className="flex-1 h-12 rounded-xl text-base font-bold bg-green-600 text-white hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Concluindo...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="w-5 h-5" />
+                      Concluir Manutenção
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

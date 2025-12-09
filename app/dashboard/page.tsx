@@ -28,9 +28,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     orderBy: { nome: 'asc' },
   })
 
-  // Busca TODOS os materiais com a movimentação ativa (quem está usando)
+  // Busca TODOS os materiais ATIVOS com a movimentação ativa (quem está usando)
+  // Exclui materiais INATIVOS do dashboard operacional
   const todosMateriais = await prisma.material.findMany({
-    where: { unidadeId: { in: permissoes.unidadesVisiveis } },
+    where: { 
+      unidadeId: { in: permissoes.unidadesVisiveis },
+      status: { not: 'INATIVO' } // Exclui inativos
+    },
     include: {
       tipo: true,
       unidade: true,

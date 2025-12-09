@@ -85,6 +85,7 @@ export default async function GestaoUnidadesPage({ searchParams }: PageProps) {
         id: u.id,
         nome: u.nome,
         sigla: u.sigla,
+        endereco: u.endereco,
         unidadeSuperiorId: u.unidadeSuperiorId,
         unidadeSuperior: u.unidadeSuperior ? { nome: u.unidadeSuperior.nome } : null,
         _count: u._count,

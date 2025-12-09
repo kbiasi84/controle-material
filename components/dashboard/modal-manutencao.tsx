@@ -79,10 +79,7 @@ export function ModalManutencao({ material, usuarioLogado, onClose, onSuccess }:
     setSubmitting(true)
 
     try {
-      const result = await concluirManutencao({
-        materialId: material.id,
-        responsavelId: usuarioLogado.userId,
-      })
+      const result = await concluirManutencao(material.id)
       
       setResultado(result)
     } catch {

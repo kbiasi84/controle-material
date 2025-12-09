@@ -4,12 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { getSession } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 
-interface ConcluirManutencaoParams {
-  materialId: number
-  responsavelId: number
-}
-
-export async function concluirManutencao(params: ConcluirManutencaoParams): Promise<{ success: boolean; message: string }> {
+export async function concluirManutencao(materialId: number): Promise<{ success: boolean; message: string }> {
   const session = await getSession()
 
   if (!session) {
@@ -20,8 +15,6 @@ export async function concluirManutencao(params: ConcluirManutencaoParams): Prom
   if (session.perfil !== 'GESTOR') {
     return { success: false, message: 'Você não tem permissão para concluir manutenção.' }
   }
-
-  const { materialId } = params
 
   try {
     // Busca o material
@@ -48,7 +41,7 @@ export async function concluirManutencao(params: ConcluirManutencaoParams): Prom
 
     // Revalida o cache das páginas
     revalidatePath('/dashboard')
-    revalidatePath('/admin/materiais')
+    revalidatePath('/dashboard/materiais')
 
     return {
       success: true,

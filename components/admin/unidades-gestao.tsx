@@ -24,6 +24,7 @@ interface Unidade {
   id: number
   nome: string
   sigla: string | null
+  endereco: string | null
   unidadeSuperiorId: number | null
   unidadeSuperior: { nome: string } | null
   _count: {
@@ -325,6 +326,7 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
   const [formData, setFormData] = useState({
     nome: '',
     sigla: '',
+    endereco: '',
     unidadeSuperiorId: '',
   })
 
@@ -335,12 +337,14 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
         setFormData({
           nome: unidade.nome,
           sigla: unidade.sigla || '',
+          endereco: unidade.endereco || '',
           unidadeSuperiorId: unidade.unidadeSuperiorId?.toString() || '',
         })
       } else {
         setFormData({
           nome: '',
           sigla: '',
+          endereco: '',
           unidadeSuperiorId: '',
         })
       }
@@ -367,12 +371,14 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
           id: unidade.id,
           nome: formData.nome.toUpperCase(),
           sigla: formData.sigla.toUpperCase() || undefined,
+          endereco: formData.endereco || undefined,
           unidadeSuperiorId: formData.unidadeSuperiorId ? parseInt(formData.unidadeSuperiorId) : null,
         })
       } else {
         result = await criarUnidade({
           nome: formData.nome.toUpperCase(),
           sigla: formData.sigla.toUpperCase() || undefined,
+          endereco: formData.endereco || undefined,
           unidadeSuperiorId: formData.unidadeSuperiorId ? parseInt(formData.unidadeSuperiorId) : undefined,
         })
       }
@@ -466,6 +472,19 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
                 onChange={(e) => setFormData({ ...formData, sigla: e.target.value.toUpperCase() })}
                 placeholder="Ex: BOP"
                 className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors uppercase"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Endereço (opcional)
+              </label>
+              <input
+                type="text"
+                value={formData.endereco}
+                onChange={(e) => setFormData({ ...formData, endereco: e.target.value })}
+                placeholder="Ex: Rua das Flores, 123 - Centro"
+                className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors"
               />
             </div>
 
