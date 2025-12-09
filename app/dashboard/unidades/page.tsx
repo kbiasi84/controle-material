@@ -20,8 +20,8 @@ export default async function GestaoUnidadesPage() {
     return null
   }
 
-  // Verifica se o usuário tem permissão
-  if (session.perfil !== 'GESTOR' && session.perfil !== 'ADMINISTRADOR') {
+  // Verifica se o usuário tem permissão (apenas GESTOR)
+  if (session.perfil !== 'GESTOR') {
     redirect('/dashboard?error=unauthorized')
   }
 

@@ -21,8 +21,8 @@ export default async function GestaoUsuariosPage() {
     return null
   }
 
-  // Verifica se o usuário tem permissão
-  if (session.perfil !== 'GESTOR' && session.perfil !== 'ADMINISTRADOR') {
+  // Verifica se o usuário tem permissão (apenas GESTOR)
+  if (session.perfil !== 'GESTOR') {
     redirect('/dashboard?error=unauthorized')
   }
 
@@ -49,7 +49,6 @@ export default async function GestaoUsuariosPage() {
 
   // Contadores por perfil
   const gestores = usuarios.filter(u => u.perfil === 'GESTOR').length
-  const administradores = usuarios.filter(u => u.perfil === 'ADMINISTRADOR').length
   const controladores = usuarios.filter(u => u.perfil === 'CONTROLADOR').length
   const usuariosComuns = usuarios.filter(u => u.perfil === 'USUARIO').length
 
@@ -57,8 +56,6 @@ export default async function GestaoUsuariosPage() {
     switch (perfil) {
       case 'GESTOR':
         return { badge: 'bg-purple-50 text-purple-700 border-purple-200', icon: <Shield className="w-3.5 h-3.5 mr-1.5" />, label: 'Gestor' }
-      case 'ADMINISTRADOR':
-        return { badge: 'bg-orange-50 text-orange-700 border-orange-200', icon: <UserCog className="w-3.5 h-3.5 mr-1.5" />, label: 'Administrador' }
       case 'CONTROLADOR':
         return { badge: 'bg-blue-50 text-blue-700 border-blue-200', icon: <Key className="w-3.5 h-3.5 mr-1.5" />, label: 'Controlador' }
       case 'USUARIO':
@@ -87,7 +84,7 @@ export default async function GestaoUsuariosPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center">
@@ -107,17 +104,6 @@ export default async function GestaoUsuariosPage() {
             <div>
               <p className="text-2xl font-bold text-purple-600">{gestores}</p>
               <p className="text-sm text-slate-500">Gestores</p>
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
-              <UserCog className="w-6 h-6 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-orange-600">{administradores}</p>
-              <p className="text-sm text-slate-500">Admins</p>
             </div>
           </div>
         </div>
@@ -160,7 +146,6 @@ export default async function GestaoUsuariosPage() {
             <select className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors">
               <option>Todos os Perfis</option>
               <option value="GESTOR">Gestor</option>
-              <option value="ADMINISTRADOR">Administrador</option>
               <option value="CONTROLADOR">Controlador</option>
               <option value="USUARIO">Usuário</option>
             </select>
@@ -196,7 +181,6 @@ export default async function GestaoUsuariosPage() {
                 <div className="flex items-start gap-4 mb-5">
                   <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 shadow-sm ${
                     usuario.perfil === 'GESTOR' ? 'bg-purple-600 text-white' :
-                    usuario.perfil === 'ADMINISTRADOR' ? 'bg-orange-500 text-white' :
                     usuario.perfil === 'CONTROLADOR' ? 'bg-blue-600 text-white' :
                     'bg-slate-600 text-white'
                   }`}>
@@ -278,7 +262,6 @@ export default async function GestaoUsuariosPage() {
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
                             usuario.perfil === 'GESTOR' ? 'bg-purple-100 text-purple-600' :
-                            usuario.perfil === 'ADMINISTRADOR' ? 'bg-orange-100 text-orange-600' :
                             usuario.perfil === 'CONTROLADOR' ? 'bg-blue-100 text-blue-600' :
                             'bg-slate-100 text-slate-600'
                           }`}>

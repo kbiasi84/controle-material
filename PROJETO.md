@@ -59,7 +59,7 @@ Atores do sistema.
 - `id` (PK - Int Auto-increment)
 - `identificacao` (Unique - Login)
 - `nome`, `senha` (hash bcrypt)
-- `perfil` (USUARIO, CONTROLADOR, ADMINISTRADOR, GESTOR, SUPER_ADMIN)
+- `perfil` (USUARIO, CONTROLADOR, GESTOR)
 - `unidadeId` (FK - Int) – Todo usuário pertence a uma unidade fixa.
 
 #### Material
@@ -88,7 +88,7 @@ Log de mudança de patrimônio entre unidades.
 |--------|-----------------|-----------------|------------------|
 | USUARIO | Operacional (BOP) | Local: Apenas sua unidade | Retirar para si mesmo |
 | CONTROLADOR | Gestão Local (BOP/PEL) | Local: Apenas sua unidade | Retirar/Devolver para a tropa local |
-| ADMINISTRADOR | Gestão Tática (CIA/PEL) | Regional: Sua unidade + Filhas | Cadastrar Materiais, Editar, Transferir |
+| Gestão Tática (CIA/PEL) | Regional: Sua unidade + Filhas | Cadastrar Materiais, Editar, Transferir |
 | GESTOR | Comando (BPRv) | Regional Ampla: Toda árvore abaixo | Relatórios Avançados, Auditoria, Histórico, Concluir Manutenção |
 | SUPER_ADMIN | Geral (CPRv/TI) | Global: Todas as unidades | Criar Unidades, Tipos, Gestão do Sistema |
 
@@ -99,7 +99,7 @@ Log de mudança de patrimônio entre unidades.
 Quando um usuário loga, o sistema calcula a lista de IDs Permitidos:
 1. Pega o ID da unidade do usuário.
 2. Se perfil = USUARIO ou CONTROLADOR: lista contém apenas esse ID.
-3. Se perfil = ADMINISTRADOR, GESTOR ou SUPER_ADMIN: executa busca recursiva de todas as unidades subordinadas.
+3. Se perfil = GESTOR: executa busca recursiva de todas as unidades subordinadas.
 4. Resultado: Materiais são filtrados por `WHERE unidadeId IN [Lista_Calculada]`.
 
 **Exemplo prático:**
@@ -305,9 +305,7 @@ datasource db {
 enum Perfil {
   USUARIO       // Operacional (BOP) - Retirar para si
   CONTROLADOR   // Gestão Local (BOP/PEL) - Retirar/Devolver para a tropa
-  ADMINISTRADOR // Gestão Tática (CIA/PEL) - Cadastrar, Editar, Transferir
   GESTOR        // Comando (BPRv) - Relatórios, Auditoria, Visão Regional
-  SUPER_ADMIN   // Geral (CPRv) - Gestão do Sistema, Visão Global
 }
 
 enum StatusMaterial {
@@ -435,8 +433,8 @@ model Transferencia {
 | BOP 320/1 | sd.silva (USUARIO) | cb.costa (CONTROLADOR) |
 | BOP 320/2 | sd.santos (USUARIO) | cb.lima (CONTROLADOR) |
 | BOP 320/3 | sd.gomes (USUARIO) | maj.silva (GESTOR) |
-| 3 PEL | sgt.oliveira (CONTROLADOR) | ten.almeida (ADMINISTRADOR) |
-| 3 CIA | cap.souza (ADMINISTRADOR) | maj.ferreira (GESTOR) |
+| 3 PEL | sgt.oliveira (CONTROLADOR) |
+| 3 CIA | maj.ferreira (GESTOR) |
 | 3 BPRV | cel.rodrigues (GESTOR) | tc.mendes (GESTOR) |
 
 **Senha padrão para todos:** `123456`
@@ -450,13 +448,7 @@ Cada unidade possui 4 materiais de tipos variados:
 
 ## 10. Próximas Funcionalidades (Roadmap)
 
-- [ ] Cadastro de Materiais (ADMINISTRADOR+)
-- [ ] Edição de Materiais (ADMINISTRADOR+)
-- [ ] Transferência entre Unidades (ADMINISTRADOR+)
 - [ ] Relatórios e Dashboards Gerenciais (GESTOR+)
-- [ ] Gestão de Usuários (SUPER_ADMIN)
-- [ ] Gestão de Unidades (SUPER_ADMIN)
-- [ ] Gestão de Tipos de Material (SUPER_ADMIN)
 - [ ] Auditoria e Logs de Sistema (GESTOR+)
 - [ ] Exportação de Relatórios (PDF/Excel)
 - [ ] Notificações de Materiais em Manutenção prolongada
