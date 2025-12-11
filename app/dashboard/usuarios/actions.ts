@@ -195,7 +195,7 @@ export async function excluirUsuario(id: number): Promise<{ success: boolean; me
     }
 
     // Não permite excluir a si mesmo
-    if (usuario.id === session.usuarioId) {
+    if (usuario.id === session.userId) {
       return { success: false, message: 'Você não pode excluir sua própria conta.' }
     }
 
@@ -256,7 +256,7 @@ export async function inativarUsuario(id: number): Promise<{ success: boolean; m
     }
 
     // Não permite inativar a si mesmo
-    if (usuario.id === session.usuarioId) {
+    if (usuario.id === session.userId) {
       return { success: false, message: 'Você não pode inativar sua própria conta.' }
     }
 

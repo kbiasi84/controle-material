@@ -20,7 +20,7 @@ interface Material {
   descricao: string
   tipoId: number
   unidadeId: number
-  status: 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO'
+  status: 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO' | 'INATIVO'
 }
 
 interface ModalMaterialProps {
@@ -39,7 +39,7 @@ export function ModalMaterial({ isOpen, onClose, tipos, unidades, material }: Mo
     descricao: '',
     tipoId: '',
     unidadeId: '',
-    status: 'DISPONIVEL' as 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO',
+    status: 'DISPONIVEL' as 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO' | 'INATIVO',
   })
 
   const [isLoading, setIsLoading] = useState(false)
@@ -69,7 +69,7 @@ export function ModalMaterial({ isOpen, onClose, tipos, unidades, material }: Mo
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.codigoIdentificacao || !formData.descricao || !formData.tipoId || !formData.unidadeId) {
       setResultado({ success: false, message: 'Preencha todos os campos obrigatórios.' })
       return
@@ -117,11 +117,11 @@ export function ModalMaterial({ isOpen, onClose, tipos, unidades, material }: Mo
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
@@ -139,7 +139,7 @@ export function ModalMaterial({ isOpen, onClose, tipos, unidades, material }: Mo
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
@@ -149,11 +149,10 @@ export function ModalMaterial({ isOpen, onClose, tipos, unidades, material }: Mo
 
         {/* Resultado */}
         {resultado && (
-          <div className={`mx-6 mt-6 p-4 rounded-xl flex items-center gap-3 ${
-            resultado.success 
-              ? 'bg-green-50 text-green-800 border border-green-200' 
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}>
+          <div className={`mx-6 mt-6 p-4 rounded-xl flex items-center gap-3 ${resultado.success
+            ? 'bg-green-50 text-green-800 border border-green-200'
+            : 'bg-red-50 text-red-800 border border-red-200'
+            }`}>
             {resultado.success ? (
               <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
             ) : (
@@ -235,7 +234,7 @@ export function ModalMaterial({ isOpen, onClose, tipos, unidades, material }: Mo
               </label>
               <select
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO' })}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value as 'DISPONIVEL' | 'EM_USO' | 'MANUTENCAO' | 'INATIVO' })}
                 className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
               >
                 <option value="DISPONIVEL">Disponível</option>
