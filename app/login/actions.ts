@@ -92,7 +92,7 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
     if (!usuario) {
       return {
         success: true,
-        message: 'Se o e-mail estiver cadastrado, você receberá as instruções de recuperação.'
+        message: 'Se o e-mail estiver cadastrado, você receberá as instruções de recuperação. Confira na caixa de spam!'
       }
     }
 
@@ -128,7 +128,7 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
 
     return {
       success: true,
-      message: 'Se o e-mail estiver cadastrado, você receberá as instruções de recuperação.'
+      message: 'Se o e-mail estiver cadastrado, você receberá as instruções de recuperação. Confira na caixa de spam!'
     }
   } catch (error) {
     console.error('Erro ao solicitar recuperação de senha:', error)

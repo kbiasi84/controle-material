@@ -105,7 +105,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Retirar Material</h2>
           <p className="text-slate-500 mt-1">
-            Materiais disponíveis na {session.unidadeNome}
+            Materiais disponíveis no {session.unidadeNome}
           </p>
         </div>
 
