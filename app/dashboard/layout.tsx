@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { getSession } from '@/lib/auth'
-import { getHierarquiaUnidade } from '@/lib/unidade'
+import { getHierarquiaUnidade } from '@/lib/unidades-helper'
 import { Sidebar } from '@/components/dashboard/sidebar'
 import { Header } from '@/components/dashboard/header'
 

@@ -3,11 +3,12 @@ import { getPermissoesUsuario } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { MateriaisGestao } from '@/components/admin/materiais-gestao'
+import { getUnidadesParaSeletor } from '@/lib/unidades-helper'
 
 const REGISTROS_POR_PAGINA = 15
 
 interface PageProps {
-  searchParams: Promise<{ 
+  searchParams: Promise<{
     busca?: string
     tipo?: string
     status?: string
@@ -36,19 +37,14 @@ export default async function GestaoMateriaisPage({ searchParams }: PageProps) {
   const paginaAtual = parseInt(params.pagina || '1')
 
   const permissoes = await getPermissoesUsuario(session)
-  
+
   // Busca tipos de material para o filtro
   const tiposMaterial = await prisma.tipoMaterial.findMany({
     orderBy: { nome: 'asc' },
   })
 
-  // Busca unidades visíveis para o filtro e formulário
-  const unidades = await prisma.unidade.findMany({
-    where: {
-      id: { in: permissoes.unidadesVisiveis }
-    },
-    orderBy: { nome: 'asc' },
-  })
+  // Busca unidades com caminho completo para o filtro e formulário
+  const unidadesComCaminho = await getUnidadesParaSeletor()
 
   // Monta o where clause para busca no banco
   const whereClause: any = {
@@ -124,7 +120,7 @@ export default async function GestaoMateriaisPage({ searchParams }: PageProps) {
   })
 
   return (
-    <MateriaisGestao 
+    <MateriaisGestao
       materiais={materiais.map(m => {
         // Pega quem enviou para manutenção (última devolução)
         const ultimaMovimentacao = m.movimentacoes[0]
@@ -146,7 +142,7 @@ export default async function GestaoMateriaisPage({ searchParams }: PageProps) {
         }
       })}
       tipos={tiposMaterial.map(t => ({ id: t.id, nome: t.nome }))}
-      unidades={unidades.map(u => ({ id: u.id, nome: u.nome }))}
+      unidades={unidadesComCaminho.map(u => ({ id: u.id, nome: u.caminhoCompleto }))}
       paginaAtual={paginaAtual}
       totalPaginas={totalPaginas}
       totalRegistros={totalRegistros}

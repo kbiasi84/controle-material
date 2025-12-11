@@ -3,11 +3,12 @@ import { getPermissoesUsuario } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { UsuariosGestao } from '@/components/admin/usuarios-gestao'
+import { getUnidadesParaSeletor } from '@/lib/unidades-helper'
 
 const REGISTROS_POR_PAGINA = 15
 
 interface PageProps {
-  searchParams: Promise<{ 
+  searchParams: Promise<{
     busca?: string
     perfil?: string
     unidade?: string
@@ -35,13 +36,8 @@ export default async function GestaoUsuariosPage({ searchParams }: PageProps) {
 
   const permissoes = await getPermissoesUsuario(session)
 
-  // Busca unidades para o filtro
-  const unidades = await prisma.unidade.findMany({
-    where: {
-      id: { in: permissoes.unidadesVisiveis }
-    },
-    orderBy: { nome: 'asc' },
-  })
+  // Busca unidades com caminho completo para o seletor
+  const unidadesComCaminho = await getUnidadesParaSeletor()
 
   // Monta o where clause para busca no banco (apenas usuários ativos)
   const whereClause: any = {
@@ -91,7 +87,7 @@ export default async function GestaoUsuariosPage({ searchParams }: PageProps) {
   })
 
   return (
-    <UsuariosGestao 
+    <UsuariosGestao
       usuarios={usuarios.map(u => ({
         id: u.id,
         identificacao: u.identificacao,
@@ -100,7 +96,7 @@ export default async function GestaoUsuariosPage({ searchParams }: PageProps) {
         unidadeId: u.unidadeId,
         unidade: { nome: u.unidade.nome },
       }))}
-      unidades={unidades.map(u => ({ id: u.id, nome: u.nome }))}
+      unidades={unidadesComCaminho.map(u => ({ id: u.id, nome: u.caminhoCompleto }))}
       paginaAtual={paginaAtual}
       totalPaginas={totalPaginas}
       totalRegistros={totalRegistros}

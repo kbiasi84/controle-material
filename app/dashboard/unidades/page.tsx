@@ -3,11 +3,12 @@ import { getPermissoesUsuario } from '@/lib/permissions'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { UnidadesGestao } from '@/components/admin/unidades-gestao'
+import { getUnidadesParaSeletor } from '@/lib/unidades-helper'
 
 const REGISTROS_POR_PAGINA = 15
 
 interface PageProps {
-  searchParams: Promise<{ 
+  searchParams: Promise<{
     busca?: string
     pagina?: string
   }>
@@ -70,17 +71,11 @@ export default async function GestaoUnidadesPage({ searchParams }: PageProps) {
     take: REGISTROS_POR_PAGINA,
   })
 
-  // Busca todas as unidades para o dropdown de unidade superior
-  const todasUnidades = await prisma.unidade.findMany({
-    where: {
-      id: { in: permissoes.unidadesVisiveis }
-    },
-    select: { id: true, nome: true },
-    orderBy: { nome: 'asc' },
-  })
+  // Busca todas as unidades com caminho completo para o dropdown de unidade superior
+  const unidadesParaSeletor = await getUnidadesParaSeletor()
 
   return (
-    <UnidadesGestao 
+    <UnidadesGestao
       unidades={unidades.map(u => ({
         id: u.id,
         nome: u.nome,
@@ -90,7 +85,7 @@ export default async function GestaoUnidadesPage({ searchParams }: PageProps) {
         unidadeSuperior: u.unidadeSuperior ? { nome: u.unidadeSuperior.nome } : null,
         _count: u._count,
       }))}
-      todasUnidades={todasUnidades}
+      todasUnidades={unidadesParaSeletor.map(u => ({ id: u.id, nome: u.caminhoCompleto }))}
       paginaAtual={paginaAtual}
       totalPaginas={totalPaginas}
       totalRegistros={totalRegistros}
