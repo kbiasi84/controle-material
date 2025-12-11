@@ -81,7 +81,7 @@ export async function devolverMaterial(params: DevolverMaterialParams): Promise<
     revalidatePath('/dashboard')
     revalidatePath('/dashboard/retiradas')
     revalidatePath('/dashboard/historico')
-    revalidatePath('/dashboard/efetivo')
+    revalidatePath('/dashboard/devolucao')
 
     return {
       success: true,

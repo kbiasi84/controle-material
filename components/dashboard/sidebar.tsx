@@ -42,7 +42,7 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
   ]
 
   const menuOperacional: NavItem[] = [
-    { label: 'Controle de Efetivo', href: '/dashboard/efetivo', icon: <Users className="w-6 h-6" /> },
+    { label: 'Controle de Devolução', href: '/dashboard/devolucao', icon: <Users className="w-6 h-6" /> },
   ]
 
   const menuAdmin: NavItem[] = [
@@ -54,16 +54,15 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
 
   const NavLink = ({ item }: { item: NavItem }) => {
     const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-    
+
     return (
       <Link
         href={item.href}
         onClick={onNavigate}
-        className={`flex items-center px-6 py-4 text-base font-semibold transition-all border-r-4 ${
-          isActive
-            ? 'bg-slate-800 text-white border-blue-500'
-            : 'text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-white'
-        }`}
+        className={`flex items-center px-6 py-4 text-base font-semibold transition-all border-r-4 ${isActive
+          ? 'bg-slate-800 text-white border-blue-500'
+          : 'text-slate-400 border-transparent hover:bg-slate-800/50 hover:text-white'
+          }`}
       >
         {item.icon}
         <span className="ml-4">{item.label}</span>
@@ -97,11 +96,11 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4">
         <NavGroup title="Operacional" items={menuPrincipal} />
-        
+
         {isControladorOrGestor && (
           <NavGroup title="Gestão de Pessoal" items={menuOperacional} />
         )}
-        
+
         {isGestor && (
           <NavGroup title="Administração" items={menuAdmin} />
         )}

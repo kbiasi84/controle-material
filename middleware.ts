@@ -12,7 +12,7 @@ const PUBLIC_ROUTES = ['/login', '/api/auth']
 const GESTOR_ONLY_ROUTES = ['/admin']
 
 // Rotas que requerem CONTROLADOR ou GESTOR
-const CONTROLADOR_ROUTES = ['/dashboard/efetivo']
+const CONTROLADOR_ROUTES = ['/dashboard/devolucao']
 
 interface SessionPayload {
   userId: number
@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Verifica rotas de CONTROLADOR+ (/dashboard/efetivo)
+  // Verifica rotas de CONTROLADOR+ (/dashboard/devolucao)
   if (CONTROLADOR_ROUTES.some(route => pathname.startsWith(route))) {
     if (perfil !== 'CONTROLADOR' && perfil !== 'GESTOR') {
       // Não tem permissão - redireciona para dashboard

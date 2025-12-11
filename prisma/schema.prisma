@@ -50,12 +50,17 @@ model TipoMaterial {
 }
 
 model Usuario {
-  id            Int     @id @default(autoincrement())
-  identificacao String  @unique // Login
+  id            Int       @id @default(autoincrement())
+  identificacao String    @unique // Login
   nome          String
+  email         String    @unique // Obrigatório para login/recuperação
   senha         String 
-  perfil        Perfil  @default(USUARIO)
-  ativo         Boolean @default(true)
+  perfil        Perfil    @default(USUARIO)
+  ativo         Boolean   @default(true)
+  
+  // Campos para recuperação de senha
+  resetToken    String?   @unique // Código gerado para reset
+  resetExpires  DateTime?          // Quando o código vence
   
   unidadeId     Int
   unidade       Unidade @relation(fields: [unidadeId], references: [id])

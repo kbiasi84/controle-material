@@ -128,35 +128,47 @@ async function main() {
   // Configuração de usuários por unidade
   const usuariosPorUnidade = [
     // 3º BPRv - Gestores
-    { unidade: bprv3, usuarios: [
-      { id: 'maj.silva', nome: 'Maj. Silva', perfil: 'GESTOR' },
-      { id: 'cap.almeida', nome: 'Cap. Almeida', perfil: 'GESTOR' },
-    ]},
+    {
+      unidade: bprv3, usuarios: [
+        { id: 'maj.silva', nome: 'Maj. Silva', perfil: 'GESTOR', email: 'major@policia.gov.br' },
+        { id: 'cap.almeida', nome: 'Cap. Almeida', perfil: 'GESTOR', email: 'capitao.almeida@policia.gov.br' },
+      ]
+    },
     // 3ª CIA - Gestores
-    { unidade: cia3, usuarios: [
-      { id: 'cap.santos', nome: 'Cap. Santos', perfil: 'GESTOR' },
-      { id: 'ten.oliveira', nome: 'Ten. Oliveira', perfil: 'CONTROLADOR' },
-    ]},
+    {
+      unidade: cia3, usuarios: [
+        { id: 'cap.santos', nome: 'Cap. Santos', perfil: 'GESTOR', email: 'capitao.santos@policia.gov.br' },
+        { id: 'ten.oliveira', nome: 'Ten. Oliveira', perfil: 'CONTROLADOR', email: 'tenente@policia.gov.br' },
+      ]
+    },
     // 3º PEL - Controladores
-    { unidade: pel3, usuarios: [
-      { id: 'sgt.costa', nome: 'Sgt. Costa', perfil: 'CONTROLADOR' },
-      { id: 'sgt.ferreira', nome: 'Sgt. Ferreira', perfil: 'CONTROLADOR' },
-    ]},
+    {
+      unidade: pel3, usuarios: [
+        { id: 'sgt.costa', nome: 'Sgt. Costa', perfil: 'CONTROLADOR', email: 'sargento.costa@policia.gov.br' },
+        { id: 'sgt.ferreira', nome: 'Sgt. Ferreira', perfil: 'CONTROLADOR', email: 'sargento.ferreira@policia.gov.br' },
+      ]
+    },
     // BOP 320/1 - Usuários
-    { unidade: bop320_1, usuarios: [
-      { id: 'cb.lima', nome: 'Cb. Lima', perfil: 'USUARIO' },
-      { id: 'sd.martins', nome: 'Sd. Martins', perfil: 'USUARIO' },
-    ]},
+    {
+      unidade: bop320_1, usuarios: [
+        { id: 'cb.lima', nome: 'Cb. Lima', perfil: 'USUARIO', email: 'cabo.lima@policia.gov.br' },
+        { id: 'sd.martins', nome: 'Sd. Martins', perfil: 'USUARIO', email: 'soldado.martins@policia.gov.br' },
+      ]
+    },
     // BOP 320/2 - Usuários
-    { unidade: bop320_2, usuarios: [
-      { id: 'cb.souza', nome: 'Cb. Souza', perfil: 'USUARIO' },
-      { id: 'sd.rodrigues', nome: 'Sd. Rodrigues', perfil: 'USUARIO' },
-    ]},
+    {
+      unidade: bop320_2, usuarios: [
+        { id: 'cb.souza', nome: 'Cb. Souza', perfil: 'USUARIO', email: 'cabo.souza@policia.gov.br' },
+        { id: 'sd.rodrigues', nome: 'Sd. Rodrigues', perfil: 'USUARIO', email: 'soldado.rodrigues@policia.gov.br' },
+      ]
+    },
     // BOP 320/3 - Usuários
-    { unidade: bop320_3, usuarios: [
-      { id: 'cb.pereira', nome: 'Cb. Pereira', perfil: 'CONTROLADOR' },
-      { id: 'sd.gomes', nome: 'Sd. Gomes', perfil: 'USUARIO' },
-    ]},
+    {
+      unidade: bop320_3, usuarios: [
+        { id: 'cb.pereira', nome: 'Cb. Pereira', perfil: 'CONTROLADOR', email: 'cabo.pereira@policia.gov.br' },
+        { id: 'sd.gomes', nome: 'Sd. Gomes', perfil: 'USUARIO', email: 'soldado.gomes@policia.gov.br' },
+      ]
+    },
   ]
 
   for (const config of usuariosPorUnidade) {
@@ -165,12 +177,13 @@ async function main() {
         data: {
           identificacao: usr.id,
           nome: usr.nome,
+          email: usr.email,
           senha: senhaHash,
           perfil: usr.perfil as 'GESTOR' | 'CONTROLADOR' | 'USUARIO',
           unidadeId: config.unidade.id,
         },
       })
-      console.log(`  ✅ ${usr.id} (${usr.perfil}) → ${config.unidade.nome}`)
+      console.log(`  ✅ ${usr.id} (${usr.perfil}) → ${config.unidade.nome} | ${usr.email}`)
     }
   }
 
@@ -191,7 +204,7 @@ async function main() {
     for (let i = 0; i < 4; i++) {
       const tipo = tipoAleatorio()
       const codigo = gerarCodigo(tipo.nome)
-      
+
       await prisma.material.create({
         data: {
           codigoIdentificacao: codigo,

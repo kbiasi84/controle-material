@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { 
-  ShoppingBag, 
+import {
+  ShoppingBag,
   ArrowDownToLine,
   Calendar,
   Package,
@@ -15,9 +15,6 @@ export default async function MinhasRetiradasPage() {
     return null
   }
 
-  // Verifica se o usuário pode devolver (apenas CONTROLADOR e GESTOR)
-  const podeDevolver = session.perfil === 'CONTROLADOR' || session.perfil === 'GESTOR'
-  
   // Busca movimentações do usuário (materiais em uso - sem data de devolução)
   const movimentacoes = await prisma.movimentacao.findMany({
     where: {
@@ -55,7 +52,7 @@ export default async function MinhasRetiradasPage() {
             Materiais que você possui em sua posse atualmente
           </p>
         </div>
-        
+
         {/* Counter Badge */}
         <div className="flex gap-3">
           <span className="inline-flex items-center px-4 py-2.5 rounded-xl text-base font-bold bg-blue-100 text-blue-800 border-2 border-blue-200">
@@ -77,8 +74,8 @@ export default async function MinhasRetiradasPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {movimentacoes.map((mov) => (
-            <div 
-              key={mov.id} 
+            <div
+              key={mov.id}
               className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 group flex flex-col"
             >
               {/* Header com ícone e info */}
@@ -102,7 +99,7 @@ export default async function MinhasRetiradasPage() {
                   <span className="w-2 h-2 rounded-full bg-red-500 mr-2"></span>
                   Em Uso
                 </div>
-                
+
                 <p className="text-sm text-slate-500 flex items-center">
                   <Calendar className="w-4 h-4 mr-2 text-slate-400 shrink-0" />
                   <span>Retirado em: {formatDate(mov.dataRetirada)}</span>
@@ -115,14 +112,6 @@ export default async function MinhasRetiradasPage() {
                   </p>
                 )}
               </div>
-
-              {/* Action Button - Apenas para CONTROLADOR e GESTOR */}
-              {podeDevolver && (
-                <button className="w-full py-3.5 rounded-xl text-base font-bold transition-colors flex items-center justify-center bg-white border-2 border-slate-300 text-slate-700 hover:bg-slate-50">
-                  <ArrowDownToLine className="w-5 h-5 mr-2.5" />
-                  Devolver
-                </button>
-              )}
             </div>
           ))}
         </div>

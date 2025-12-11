@@ -6,17 +6,17 @@ import { Perfil } from '@prisma/client'
  */
 async function getUnidadesDescendentes(unidadeId: number): Promise<number[]> {
   const ids: number[] = [unidadeId]
-  
+
   const subordinadas = await prisma.unidade.findMany({
     where: { unidadeSuperiorId: unidadeId },
     select: { id: true },
   })
-  
+
   for (const sub of subordinadas) {
     const subIds = await getUnidadesDescendentes(sub.id)
     ids.push(...subIds)
   }
-  
+
   return ids
 }
 
@@ -109,7 +109,7 @@ export async function canManageMaterial(usuarioId: number, materialId: number): 
  */
 export async function getUnidadeFilter(usuarioId: number) {
   const unidadesPermitidas = await getUnidadesPermitidas(usuarioId)
-  
+
   return {
     unidadeId: {
       in: unidadesPermitidas,
@@ -125,15 +125,15 @@ export function hasRouteAccess(perfil: Perfil, rota: 'ADMIN' | 'EFETIVO' | 'DASH
     case 'ADMIN':
       // Apenas GESTOR pode acessar /admin
       return perfil === 'GESTOR'
-    
+
     case 'EFETIVO':
-      // CONTROLADOR e GESTOR podem acessar /dashboard/efetivo
+      // CONTROLADOR e GESTOR podem acessar /dashboard/devolucao
       return perfil === 'CONTROLADOR' || perfil === 'GESTOR'
-    
+
     case 'DASHBOARD':
       // Todos os perfis podem acessar /dashboard
       return true
-    
+
     default:
       return false
   }

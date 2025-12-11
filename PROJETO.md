@@ -13,6 +13,7 @@ Sistema web para gerenciamento ágil de retirada, devolução e manutenção de 
 | **Banco de Dados** | PostgreSQL |
 | **ORM** | Prisma 7.x – Gerenciamento do banco e tipos |
 | **Autenticação** | JWT com jose + bcryptjs |
+| **E-mail** | Resend + React Email – Envio de emails transacionais |
 
 ## 3. Arquitetura de Dados (Modelagem)
 
@@ -45,7 +46,7 @@ Locais físicos organizados hierarquicamente.
 - `unidadeSuperiorId` (FK - Int?) – Referência à unidade pai na hierarquia
 - `subordinadas` (Relação) – Lista de unidades filhas
 
-**Regra:** Criadas apenas via Seed ou SUPER_ADMIN.
+**Regra:** Criadas via Seed ou por GESTOR (para subunidades).
 
 #### TipoMaterial
 Categorias padronizadas (Ex: "Etilômetro", "Taser", "Viatura").
@@ -59,7 +60,11 @@ Atores do sistema.
 - `id` (PK - Int Auto-increment)
 - `identificacao` (Unique - Login)
 - `nome`, `senha` (hash bcrypt)
+- `email` (Unique - String) – Obrigatório para login/recuperação
 - `perfil` (USUARIO, CONTROLADOR, GESTOR)
+- `ativo` (Boolean) – Se o usuário está ativo
+- `resetToken` (String?) – Token para recuperação de senha
+- `resetExpires` (DateTime?) – Validade do token
 - `unidadeId` (FK - Int) – Todo usuário pertence a uma unidade fixa.
 
 #### Material
@@ -90,7 +95,7 @@ Log de mudança de patrimônio entre unidades.
 | CONTROLADOR | Gestão Local (BOP/PEL) | Local: Apenas sua unidade | Retirar/Devolver para a tropa local |
 | Gestão Tática (CIA/PEL) | Regional: Sua unidade + Filhas | Cadastrar Materiais, Editar, Transferir |
 | GESTOR | Comando (BPRv) | Regional Ampla: Toda árvore abaixo | Relatórios Avançados, Auditoria, Histórico, Concluir Manutenção |
-| SUPER_ADMIN | Geral (CPRv/TI) | Global: Todas as unidades | Criar Unidades, Tipos, Gestão do Sistema |
+| Geral (CPRv/TI) | Global: Todas as unidades | Criar Unidades, Tipos, Gestão do Sistema |
 
 ## 5. Fluxos e Regras de Negócio
 
@@ -210,7 +215,7 @@ Quando um usuário loga, o sistema calcula a lista de IDs Permitidos:
 
 ### 6.7 Controle de Efetivo
 
-**Localização:** `/dashboard/efetivo`
+**Localização:** `/dashboard/devolucao`
 
 **Acesso:** CONTROLADOR e GESTOR
 
@@ -239,6 +244,55 @@ Quando um usuário loga, o sistema calcula a lista de IDs Permitidos:
 - Colunas: Material, Código, Data Retirada, Data Devolução, Status, Observação
 - Paginação com controle de página e total de registros
 
+### 6.9 Relatórios Avançados
+
+**Localização:** `/dashboard/relatorios`
+
+**Acesso:** Apenas GESTOR
+
+**Funcionalidade:** Consulta histórico de movimentações por material ou usuário
+
+**Características:**
+- **Tabs:** "Histórico do Material" e "Histórico do Usuário"
+- **Combobox de busca:** Ativa com 3+ caracteres
+- **Filtro de data:** DateRangePicker opcional
+- **Tabela paginada:** 15 registros por página
+- **Badge "Pendente":** Destaca devoluções não realizadas
+- **Formatação pt-BR:** Datas no formato dd/MM/yyyy HH:mm
+
+**Colunas da Tabela (Por Material):**
+- Policial (quem usou)
+- Retirada (data/hora)
+- Responsável Retirada
+- Devolução (data/hora)
+- Responsável Devolução
+- Observações
+
+### 6.10 Recuperação de Senha
+
+**Localização:** Link "Esqueci minha senha" na tela de login
+
+**Funcionalidade:** Permite recuperar senha via email
+
+**Fluxo:**
+1. Usuário clica em "Esqueci minha senha" no login
+2. Insere email cadastrado no modal
+3. Sistema gera token seguro (crypto) com 1h de validade
+4. Email é enviado via Resend com link de recuperação
+5. Usuário acessa link e define nova senha
+6. Token é invalidado após uso
+
+**Componentes:**
+- `EsqueciSenhaModal` – Modal de solicitação
+- `reset-password/page.tsx` – Página de redefinição
+- `ResetEmail` – Template de email profissional
+
+**Segurança:**
+- Token gerado com `crypto.randomBytes(32)`
+- Expiração em 1 hora
+- Mensagem genérica (não revela se email existe)
+- Hash bcrypt para nova senha
+
 ---
 
 ## 7. Estrutura de Arquivos
@@ -262,8 +316,13 @@ app/
 │   └── usuarios/
 │       └── buscar/
 │           └── route.ts      # API de busca de usuários
-└── login/
-    └── page.tsx              # Página de login
+├── login/
+│   ├── page.tsx              # Página de login
+│   ├── actions.ts            # Server actions (login, reset password)
+│   ├── esqueci-senha-modal.tsx # Modal de recuperação
+│   └── reset-password/
+│       └── page.tsx          # Página de redefinição de senha
+
 
 components/
 └── dashboard/
@@ -279,6 +338,8 @@ components/
     ├── efetivo-lista.tsx     # Lista filtrável do efetivo
     ├── historico-filtros.tsx # Filtros do histórico
     └── paginacao.tsx         # Componente de paginação
+└── emails/
+    └── reset-email.tsx       # Template de email para reset de senha
 
 lib/
 ├── prisma.ts                 # Cliente Prisma
@@ -340,11 +401,17 @@ model TipoMaterial {
 }
 
 model Usuario {
-  id            Int    @id @default(autoincrement())
-  identificacao String @unique
+  id            Int       @id @default(autoincrement())
+  identificacao String    @unique
   nome          String
+  email         String    @unique
   senha         String 
-  perfil        Perfil @default(USUARIO)
+  perfil        Perfil    @default(USUARIO)
+  ativo         Boolean   @default(true)
+  
+  // Campos para recuperação de senha
+  resetToken    String?   @unique
+  resetExpires  DateTime?
   
   unidadeId     Int
   unidade       Unidade @relation(fields: [unidadeId], references: [id])
@@ -448,10 +515,13 @@ Cada unidade possui 4 materiais de tipos variados:
 
 ## 10. Próximas Funcionalidades (Roadmap)
 
-- [ ] Relatórios e Dashboards Gerenciais (GESTOR+)
+- [x] Relatórios e Dashboards Gerenciais (GESTOR+)
+- [x] Recuperação de Senha via Email
 - [ ] Auditoria e Logs de Sistema (GESTOR+)
 - [ ] Exportação de Relatórios (PDF/Excel)
 - [ ] Notificações de Materiais em Manutenção prolongada
+- [ ] Cadastro de Usuários pelo GESTOR
+- [ ] Transferência de Materiais entre Unidades
 
 ---
 
@@ -473,8 +543,14 @@ npx prisma generate
 
 # Visualizar banco
 npx prisma studio
+
+# Variáveis de ambiente necessárias (.env)
+DATABASE_URL="postgresql://..."
+JWT_SECRET="seu_secret"
+RESEND_API_KEY="re_xxxxxxxxxx"  # Para envio de emails
+NEXT_PUBLIC_APP_URL="http://localhost:3000"  # Opcional, para produção
 ```
 
 ---
 
-**Última atualização:** Dezembro/2024
+**Última atualização:** Dezembro/2025
