@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { 
+import {
   User,
   UserCog,
   UserX,
@@ -32,6 +32,7 @@ interface Usuario {
   id: number
   identificacao: string
   nome: string
+  email: string
   perfil: 'USUARIO' | 'CONTROLADOR' | 'GESTOR'
   unidadeId: number
   unidade: { nome: string }
@@ -46,8 +47,8 @@ interface UsuariosGestaoProps {
   registrosPorPagina: number
 }
 
-export function UsuariosGestao({ 
-  usuarios, 
+export function UsuariosGestao({
+  usuarios,
   unidades,
   paginaAtual,
   totalPaginas,
@@ -83,7 +84,7 @@ export function UsuariosGestao({
   // Handler para busca com debounce
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-    
+
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())
       if (value.length >= 3) {
@@ -94,7 +95,7 @@ export function UsuariosGestao({
       params.delete('pagina')
       router.push(`/dashboard/usuarios?${params.toString()}`, { scroll: false })
     }, 400)
-    
+
     return () => clearTimeout(timeout)
   }
 
@@ -107,30 +108,30 @@ export function UsuariosGestao({
   const getPerfilConfig = (perfil: string) => {
     switch (perfil) {
       case 'GESTOR':
-        return { 
-          badge: 'bg-purple-50 text-purple-700 border-purple-200', 
-          icon: <Shield className="w-3.5 h-3.5 mr-1.5" />, 
+        return {
+          badge: 'bg-purple-50 text-purple-700 border-purple-200',
+          icon: <Shield className="w-3.5 h-3.5 mr-1.5" />,
           label: 'Gestor',
           bgIcon: 'bg-purple-600'
         }
       case 'CONTROLADOR':
-        return { 
-          badge: 'bg-blue-50 text-blue-700 border-blue-200', 
-          icon: <Key className="w-3.5 h-3.5 mr-1.5" />, 
+        return {
+          badge: 'bg-blue-50 text-blue-700 border-blue-200',
+          icon: <Key className="w-3.5 h-3.5 mr-1.5" />,
           label: 'Controlador',
           bgIcon: 'bg-blue-600'
         }
       case 'USUARIO':
-        return { 
-          badge: 'bg-slate-50 text-slate-700 border-slate-200', 
-          icon: <User className="w-3.5 h-3.5 mr-1.5" />, 
+        return {
+          badge: 'bg-slate-50 text-slate-700 border-slate-200',
+          icon: <User className="w-3.5 h-3.5 mr-1.5" />,
           label: 'Usuário',
           bgIcon: 'bg-slate-600'
         }
       default:
-        return { 
-          badge: 'bg-slate-50 text-slate-700 border-slate-200', 
-          icon: <User className="w-3.5 h-3.5 mr-1.5" />, 
+        return {
+          badge: 'bg-slate-50 text-slate-700 border-slate-200',
+          icon: <User className="w-3.5 h-3.5 mr-1.5" />,
           label: perfil,
           bgIcon: 'bg-slate-600'
         }
@@ -150,10 +151,10 @@ export function UsuariosGestao({
             Cadastre, edite e gerencie os usuários da sua região
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {/* Botão Novo Usuário */}
-          <button 
+          <button
             onClick={() => setModalNovoOpen(true)}
             className="inline-flex items-center px-6 py-3.5 rounded-xl text-base font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
           >
@@ -168,11 +169,11 @@ export function UsuariosGestao({
         <div className="flex flex-col lg:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input 
+            <input
               type="text"
               value={searchValue}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Buscar por nome ou identificação... (mínimo 3 caracteres)" 
+              placeholder="Buscar por nome ou identificação... (mínimo 3 caracteres)"
               className="w-full h-12 pl-12 pr-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors"
             />
             {searchValue.length > 0 && searchValue.length < 3 && (
@@ -182,7 +183,7 @@ export function UsuariosGestao({
             )}
           </div>
           <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-            <select 
+            <select
               value={currentPerfil}
               onChange={(e) => updateUrl('perfil', e.target.value)}
               className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
@@ -192,7 +193,7 @@ export function UsuariosGestao({
               <option value="CONTROLADOR">Controlador</option>
               <option value="USUARIO">Usuário</option>
             </select>
-            <select 
+            <select
               value={currentUnidade}
               onChange={(e) => updateUrl('unidade', e.target.value)}
               className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
@@ -265,14 +266,14 @@ export function UsuariosGestao({
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
-                          <button 
+                          <button
                             onClick={() => setUsuarioEditando(usuario)}
                             className="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
                             title="Editar"
                           >
                             <Edit className="w-5 h-5" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => setUsuarioExcluindo(usuario)}
                             className="p-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                             title="Excluir"
@@ -296,7 +297,7 @@ export function UsuariosGestao({
                 <span className="font-bold text-slate-700">{fimRegistros}</span> de{' '}
                 <span className="font-bold text-slate-700">{totalRegistros}</span> usuários
               </p>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handlePageChange(paginaAtual - 1)}
@@ -305,7 +306,7 @@ export function UsuariosGestao({
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                     let pageNum: number
@@ -318,23 +319,22 @@ export function UsuariosGestao({
                     } else {
                       pageNum = paginaAtual - 2 + i
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
-                          pageNum === paginaAtual
-                            ? 'bg-blue-600 text-white'
-                            : 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
+                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${pageNum === paginaAtual
+                          ? 'bg-blue-600 text-white'
+                          : 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
                       >
                         {pageNum}
                       </button>
                     )
                   })}
                 </div>
-                
+
                 <button
                   onClick={() => handlePageChange(paginaAtual + 1)}
                   disabled={paginaAtual >= totalPaginas}
@@ -386,10 +386,11 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
   const isEdicao = !!usuario
   const [isLoading, setIsLoading] = useState(false)
   const [resultado, setResultado] = useState<{ success: boolean; message: string } | null>(null)
-  
+
   const [formData, setFormData] = useState({
     identificacao: '',
     nome: '',
+    email: '',
     perfil: 'USUARIO' as 'USUARIO' | 'CONTROLADOR' | 'GESTOR',
     unidadeId: '',
   })
@@ -401,6 +402,7 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
         setFormData({
           identificacao: usuario.identificacao,
           nome: usuario.nome,
+          email: usuario.email,
           perfil: usuario.perfil,
           unidadeId: usuario.unidadeId.toString(),
         })
@@ -408,6 +410,7 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
         setFormData({
           identificacao: '',
           nome: '',
+          email: '',
           perfil: 'USUARIO',
           unidadeId: unidades.length > 0 ? unidades[0].id.toString() : '',
         })
@@ -448,6 +451,20 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
       return
     }
 
+    // Validação do email
+    if (!formData.email.trim()) {
+      setResultado({ success: false, message: 'Informe o email.' })
+      setIsLoading(false)
+      return
+    }
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailPattern.test(formData.email)) {
+      setResultado({ success: false, message: 'Email inválido.' })
+      setIsLoading(false)
+      return
+    }
+
     try {
       let result
       if (isEdicao && usuario) {
@@ -455,6 +472,7 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
           id: usuario.id,
           identificacao: formData.identificacao,
           nome: formData.nome,
+          email: formData.email.toLowerCase().trim(),
           perfil: formData.perfil,
           unidadeId: parseInt(formData.unidadeId),
         })
@@ -463,6 +481,7 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
         result = await criarUsuario({
           identificacao: formData.identificacao,
           nome: formData.nome,
+          email: formData.email.toLowerCase().trim(),
           senha: formData.identificacao,
           perfil: formData.perfil,
           unidadeId: parseInt(formData.unidadeId),
@@ -487,11 +506,11 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -507,7 +526,7 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
@@ -517,11 +536,10 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
 
         <form onSubmit={handleSubmit} className="p-6">
           {resultado && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-              resultado.success 
-                ? 'bg-green-50 text-green-800 border border-green-200' 
-                : 'bg-red-50 text-red-800 border border-red-200'
-            }`}>
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${resultado.success
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
               {resultado.success ? (
                 <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
               ) : (
@@ -542,17 +560,17 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
                 onChange={(e) => {
                   // Remove tudo que não é número
                   let value = e.target.value.replace(/\D/g, '')
-                  
+
                   // Limita a 7 dígitos (6 + 1 dígito verificador)
                   if (value.length > 7) {
                     value = value.slice(0, 7)
                   }
-                  
+
                   // Formata com hífen antes do último dígito
                   if (value.length > 6) {
                     value = value.slice(0, 6) + '-' + value.slice(6)
                   }
-                  
+
                   setFormData({ ...formData, identificacao: value })
                 }}
                 placeholder="Ex: 117241-7"
@@ -573,6 +591,20 @@ function ModalUsuario({ isOpen, onClose, unidades, usuario }: ModalUsuarioProps)
                 placeholder="Ex: CB PM SILVA"
                 className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors uppercase"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Email *
+              </label>
+              <input
+                type="email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                placeholder="Ex: usuario@email.com"
+                className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors"
+              />
+              <p className="text-xs text-slate-400 mt-1.5">Usado para recuperação de senha</p>
             </div>
 
             <div>
@@ -703,11 +735,11 @@ function ModalExcluirUsuario({ isOpen, onClose, usuario }: ModalExcluirUsuarioPr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
-      
+
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -719,7 +751,7 @@ function ModalExcluirUsuario({ isOpen, onClose, usuario }: ModalExcluirUsuarioPr
               <p className="text-sm text-slate-500">Esta ação não pode ser desfeita</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleClose}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
@@ -811,14 +843,14 @@ function ModalExcluirUsuario({ isOpen, onClose, usuario }: ModalExcluirUsuarioPr
               <p className="text-slate-600 mb-4">
                 Tem certeza que deseja excluir o usuário:
               </p>
-              
+
               <div className="bg-slate-50 rounded-xl p-4 mb-6">
                 <p className="font-bold text-slate-800">{usuario.nome}</p>
                 <p className="text-sm text-slate-500 font-mono">{usuario.identificacao}</p>
                 <p className="text-sm text-slate-400 mt-1">{usuario.unidade.nome}</p>
               </div>
 
-             
+
               <div className="flex gap-3">
                 <button
                   type="button"

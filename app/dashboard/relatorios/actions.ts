@@ -276,3 +276,95 @@ export async function getRelatorioUsuario(
         paginaAtual: page,
     }
 }
+
+/**
+ * Busca materiais de uma unidade específica
+ */
+export async function getMateriaisPorUnidade(
+    unidadeId: number,
+    busca: string = '',
+    status: string = '',
+    page: number = 1
+) {
+    const session = await getSession()
+    if (!session || session.perfil !== 'GESTOR') {
+        return { materiais: [], total: 0, totalPaginas: 0, unidade: null }
+    }
+
+    const unidadesVisiveis = await getUnidadesVisiveis(session)
+
+    // Verifica se a unidade pertence às unidades visíveis
+    if (!unidadesVisiveis.includes(unidadeId)) {
+        return { materiais: [], total: 0, totalPaginas: 0, unidade: null }
+    }
+
+    // Busca dados da unidade
+    const unidade = await prisma.unidade.findUnique({
+        where: { id: unidadeId },
+        select: { id: true, nome: true },
+    })
+
+    if (!unidade) {
+        return { materiais: [], total: 0, totalPaginas: 0, unidade: null }
+    }
+
+    // Monta where clause
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const whereClause: any = {
+        unidadeId,
+    }
+
+    // Filtro por status
+    if (status) {
+        whereClause.status = status
+    }
+
+    // Filtro por busca (mínimo 3 caracteres)
+    if (busca.length >= 3) {
+        whereClause.OR = [
+            { codigoIdentificacao: { contains: busca, mode: 'insensitive' } },
+            { descricao: { contains: busca, mode: 'insensitive' } },
+            { tipo: { nome: { contains: busca, mode: 'insensitive' } } },
+        ]
+    }
+
+    const total = await prisma.material.count({ where: whereClause })
+    const totalPaginas = Math.ceil(total / REGISTROS_POR_PAGINA)
+    const skip = (page - 1) * REGISTROS_POR_PAGINA
+
+    const materiais = await prisma.material.findMany({
+        where: whereClause,
+        include: {
+            tipo: { select: { nome: true } },
+            movimentacoes: {
+                where: { dataDevolucao: null },
+                include: {
+                    usuario: { select: { id: true, nome: true, identificacao: true } },
+                },
+                take: 1,
+                orderBy: { dataRetirada: 'desc' },
+            },
+        },
+        orderBy: { codigoIdentificacao: 'asc' },
+        skip,
+        take: REGISTROS_POR_PAGINA,
+    })
+
+    return {
+        unidade: {
+            id: unidade.id,
+            nome: unidade.nome,
+        },
+        materiais: materiais.map((m) => ({
+            id: m.id,
+            codigo: m.codigoIdentificacao,
+            descricao: m.descricao,
+            tipo: m.tipo.nome,
+            status: m.status,
+            usuarioEmUso: m.movimentacoes[0]?.usuario || null,
+        })),
+        total,
+        totalPaginas,
+        paginaAtual: page,
+    }
+}

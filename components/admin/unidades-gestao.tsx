@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { 
+import {
   Building2,
   Plus,
   Edit,
@@ -26,7 +26,7 @@ interface Unidade {
   sigla: string | null
   endereco: string | null
   unidadeSuperiorId: number | null
-  unidadeSuperior: { nome: string } | null
+  caminhoSuperior: string | null
   _count: {
     usuarios: number
     materiais: number
@@ -42,8 +42,8 @@ interface UnidadesGestaoProps {
   registrosPorPagina: number
 }
 
-export function UnidadesGestao({ 
-  unidades, 
+export function UnidadesGestao({
+  unidades,
   todasUnidades,
   paginaAtual,
   totalPaginas,
@@ -65,7 +65,7 @@ export function UnidadesGestao({
   // Handler para busca com debounce
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-    
+
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())
       if (value.length >= 3) {
@@ -76,7 +76,7 @@ export function UnidadesGestao({
       params.delete('pagina')
       router.push(`/dashboard/unidades?${params.toString()}`, { scroll: false })
     }, 400)
-    
+
     return () => clearTimeout(timeout)
   }
 
@@ -99,10 +99,10 @@ export function UnidadesGestao({
             Gerencie a estrutura organizacional e hierarquia de unidades
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {/* Botão Nova Unidade */}
-          <button 
+          <button
             onClick={() => setModalNovoOpen(true)}
             className="inline-flex items-center px-6 py-3.5 rounded-xl text-base font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
           >
@@ -117,11 +117,11 @@ export function UnidadesGestao({
         <div className="flex flex-col lg:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input 
+            <input
               type="text"
               value={searchValue}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Buscar por nome ou sigla... (mínimo 3 caracteres)" 
+              placeholder="Buscar por nome ou sigla... (mínimo 3 caracteres)"
               className="w-full h-12 pl-12 pr-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors"
             />
             {searchValue.length > 0 && searchValue.length < 3 && (
@@ -152,9 +152,6 @@ export function UnidadesGestao({
                     Unidade
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
-                    Superior
-                  </th>
-                  <th className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
                     Usuários
                   </th>
                   <th className="px-6 py-4 text-left text-sm font-bold text-slate-600 uppercase tracking-wider">
@@ -174,19 +171,17 @@ export function UnidadesGestao({
                           <Building2 className="w-5 h-5" />
                         </div>
                         <div>
-                          <p className="font-bold text-slate-800">{unidade.nome}</p>
-                          {unidade.sigla && (
-                            <p className="text-sm text-slate-400">{unidade.sigla}</p>
-                          )}
+                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                            {unidade.caminhoSuperior && (
+                              <>
+                                <span>{unidade.caminhoSuperior}</span>
+                                <span className="text-slate-300">{'>'}</span>
+                              </>
+                            )}
+                            <span className="font-bold text-slate-800 text-base">{unidade.nome}</span>
+                          </div>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      {unidade.unidadeSuperior ? (
-                        <span className="text-slate-600">{unidade.unidadeSuperior.nome}</span>
-                      ) : (
-                        <span className="text-slate-400">-</span>
-                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">
@@ -202,14 +197,14 @@ export function UnidadesGestao({
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        <button 
+                        <button
                           onClick={() => setUnidadeEditando(unidade)}
                           className="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
                           title="Editar"
                         >
                           <Edit className="w-5 h-5" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => setUnidadeExcluindo(unidade)}
                           className="p-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                           title="Excluir"
@@ -232,7 +227,7 @@ export function UnidadesGestao({
                 <span className="font-bold text-slate-700">{fimRegistros}</span> de{' '}
                 <span className="font-bold text-slate-700">{totalRegistros}</span> unidades
               </p>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handlePageChange(paginaAtual - 1)}
@@ -241,7 +236,7 @@ export function UnidadesGestao({
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                     let pageNum: number
@@ -254,23 +249,22 @@ export function UnidadesGestao({
                     } else {
                       pageNum = paginaAtual - 2 + i
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
-                          pageNum === paginaAtual
-                            ? 'bg-blue-600 text-white'
-                            : 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
+                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${pageNum === paginaAtual
+                          ? 'bg-blue-600 text-white'
+                          : 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
                       >
                         {pageNum}
                       </button>
                     )
                   })}
                 </div>
-                
+
                 <button
                   onClick={() => handlePageChange(paginaAtual + 1)}
                   disabled={paginaAtual >= totalPaginas}
@@ -322,7 +316,7 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
   const isEdicao = !!unidade
   const [isLoading, setIsLoading] = useState(false)
   const [resultado, setResultado] = useState<{ success: boolean; message: string } | null>(null)
-  
+
   const [formData, setFormData] = useState({
     nome: '',
     sigla: '',
@@ -404,11 +398,11 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -424,7 +418,7 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
               </p>
             </div>
           </div>
-          <button 
+          <button
             onClick={onClose}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
@@ -434,11 +428,10 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
 
         <form onSubmit={handleSubmit} className="p-6">
           {resultado && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-              resultado.success 
-                ? 'bg-green-50 text-green-800 border border-green-200' 
-                : 'bg-red-50 text-red-800 border border-red-200'
-            }`}>
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${resultado.success
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
               {resultado.success ? (
                 <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
               ) : (
@@ -579,11 +572,11 @@ function ModalExcluirUnidade({ isOpen, onClose, unidade }: ModalExcluirUnidadePr
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
-      
+
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -595,7 +588,7 @@ function ModalExcluirUnidade({ isOpen, onClose, unidade }: ModalExcluirUnidadePr
               <p className="text-sm text-slate-500">Esta ação não pode ser desfeita</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleClose}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
@@ -605,11 +598,10 @@ function ModalExcluirUnidade({ isOpen, onClose, unidade }: ModalExcluirUnidadePr
 
         <div className="p-6">
           {resultado && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-              resultado.success 
-                ? 'bg-green-50 text-green-800 border border-green-200' 
-                : 'bg-red-50 text-red-800 border border-red-200'
-            }`}>
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${resultado.success
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
               {resultado.success ? (
                 <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
               ) : (
@@ -624,7 +616,7 @@ function ModalExcluirUnidade({ isOpen, onClose, unidade }: ModalExcluirUnidadePr
               <p className="text-slate-600 mb-4">
                 Tem certeza que deseja excluir a unidade:
               </p>
-              
+
               <div className="bg-slate-50 rounded-xl p-4 mb-6">
                 <p className="font-bold text-slate-800">{unidade.nome}</p>
                 {unidade.sigla && (

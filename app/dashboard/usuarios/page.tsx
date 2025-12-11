@@ -86,15 +86,19 @@ export default async function GestaoUsuariosPage({ searchParams }: PageProps) {
     take: REGISTROS_POR_PAGINA,
   })
 
+  // Cria mapa para buscar caminho pelo ID
+  const unidadeMap = new Map(unidadesComCaminho.map(u => [u.id, u.caminhoCompleto]))
+
   return (
     <UsuariosGestao
       usuarios={usuarios.map(u => ({
         id: u.id,
         identificacao: u.identificacao,
         nome: u.nome,
+        email: u.email,
         perfil: u.perfil,
         unidadeId: u.unidadeId,
-        unidade: { nome: u.unidade.nome },
+        unidade: { nome: unidadeMap.get(u.unidadeId) || u.unidade.nome },
       }))}
       unidades={unidadesComCaminho.map(u => ({ id: u.id, nome: u.caminhoCompleto }))}
       paginaAtual={paginaAtual}

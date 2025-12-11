@@ -119,6 +119,9 @@ export default async function GestaoMateriaisPage({ searchParams }: PageProps) {
     },
   })
 
+  // Cria mapa para buscar caminho pelo ID
+  const unidadeMap = new Map(unidadesComCaminho.map(u => [u.id, u.caminhoCompleto]))
+
   return (
     <MateriaisGestao
       materiais={materiais.map(m => {
@@ -138,7 +141,7 @@ export default async function GestaoMateriaisPage({ searchParams }: PageProps) {
           tipoId: m.tipoId,
           unidadeId: m.unidadeId,
           tipo: { nome: m.tipo.nome },
-          unidade: { nome: m.unidade.nome },
+          unidade: { nome: unidadeMap.get(m.unidadeId) || m.unidade.nome },
         }
       })}
       tipos={tiposMaterial.map(t => ({ id: t.id, nome: t.nome }))}

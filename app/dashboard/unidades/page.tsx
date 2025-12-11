@@ -72,23 +72,71 @@ export default async function GestaoUnidadesPage({ searchParams }: PageProps) {
   })
 
   // Busca todas as unidades com caminho completo para o dropdown de unidade superior
+  // Já vem ordenado alfabeticamente pelo caminho completo
   const unidadesParaSeletor = await getUnidadesParaSeletor()
+
+  // Cria mapa com caminho superior e índice de ordenação
+  const unidadeInfoMap = new Map(unidadesParaSeletor.map((u, index) => {
+    const partes = u.caminhoCompleto.split(' > ')
+    const caminhoSuperior = partes.slice(0, -1).join(' > ')
+    return [u.id, { caminhoSuperior, ordem: index }]
+  }))
+
+  // Filtra unidades visíveis baseado na busca
+  let unidadesFiltradas = unidadesParaSeletor
+  if (busca.length >= 3) {
+    const buscaLower = busca.toLowerCase()
+    unidadesFiltradas = unidadesParaSeletor.filter(u =>
+      u.nome.toLowerCase().includes(buscaLower) ||
+      u.caminhoCompleto.toLowerCase().includes(buscaLower)
+    )
+  }
+
+  // Calcula paginação baseado nas unidades filtradas
+  const totalRegistrosFiltrados = unidadesFiltradas.length
+  const totalPaginasFiltrado = Math.ceil(totalRegistrosFiltrados / REGISTROS_POR_PAGINA)
+  const skipFiltrado = (paginaAtual - 1) * REGISTROS_POR_PAGINA
+
+  // Pega os IDs das unidades para a página atual
+  const unidadesDaPagina = unidadesFiltradas.slice(skipFiltrado, skipFiltrado + REGISTROS_POR_PAGINA)
+
+  // Busca os dados completos das unidades da página
+  const unidadesCompletas = await prisma.unidade.findMany({
+    where: {
+      id: { in: unidadesDaPagina.map(u => u.id) }
+    },
+    include: {
+      _count: {
+        select: {
+          usuarios: true,
+          materiais: true,
+        }
+      }
+    },
+  })
+
+  // Ordena pelo índice original do seletor
+  const unidadesOrdenadas = unidadesCompletas.sort((a, b) => {
+    const ordemA = unidadeInfoMap.get(a.id)?.ordem ?? 999
+    const ordemB = unidadeInfoMap.get(b.id)?.ordem ?? 999
+    return ordemA - ordemB
+  })
 
   return (
     <UnidadesGestao
-      unidades={unidades.map(u => ({
+      unidades={unidadesOrdenadas.map(u => ({
         id: u.id,
         nome: u.nome,
         sigla: u.sigla,
         endereco: u.endereco,
         unidadeSuperiorId: u.unidadeSuperiorId,
-        unidadeSuperior: u.unidadeSuperior ? { nome: u.unidadeSuperior.nome } : null,
+        caminhoSuperior: unidadeInfoMap.get(u.id)?.caminhoSuperior || null,
         _count: u._count,
       }))}
       todasUnidades={unidadesParaSeletor.map(u => ({ id: u.id, nome: u.caminhoCompleto }))}
       paginaAtual={paginaAtual}
-      totalPaginas={totalPaginas}
-      totalRegistros={totalRegistros}
+      totalPaginas={totalPaginasFiltrado}
+      totalRegistros={totalRegistrosFiltrados}
       registrosPorPagina={REGISTROS_POR_PAGINA}
     />
   )

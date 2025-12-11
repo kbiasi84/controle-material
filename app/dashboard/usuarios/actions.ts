@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs'
 interface CriarUsuarioParams {
   identificacao: string
   nome: string
+  email: string
   senha: string
   perfil: 'USUARIO' | 'CONTROLADOR' | 'GESTOR'
   unidadeId: number
@@ -18,6 +19,7 @@ interface EditarUsuarioParams {
   id: number
   identificacao: string
   nome: string
+  email: string
   perfil: 'USUARIO' | 'CONTROLADOR' | 'GESTOR'
   unidadeId: number
 }
@@ -50,6 +52,15 @@ export async function criarUsuario(params: CriarUsuarioParams): Promise<{ succes
       return { success: false, message: 'Já existe um usuário com esta identificação.' }
     }
 
+    // Verifica se o email já existe
+    const emailExistente = await prisma.usuario.findUnique({
+      where: { email: params.email }
+    })
+
+    if (emailExistente) {
+      return { success: false, message: 'Já existe um usuário com este email.' }
+    }
+
     // Hash da senha
     const senhaHash = await bcrypt.hash(params.senha, 10)
 
@@ -58,6 +69,7 @@ export async function criarUsuario(params: CriarUsuarioParams): Promise<{ succes
       data: {
         identificacao: params.identificacao,
         nome: params.nome,
+        email: params.email,
         senha: senhaHash,
         perfil: params.perfil,
         unidadeId: params.unidadeId,
@@ -117,12 +129,24 @@ export async function editarUsuario(params: EditarUsuarioParams): Promise<{ succ
       }
     }
 
+    // Verifica se o novo email já existe (se foi alterado)
+    if (params.email !== usuario.email) {
+      const emailExistente = await prisma.usuario.findUnique({
+        where: { email: params.email }
+      })
+
+      if (emailExistente) {
+        return { success: false, message: 'Já existe um usuário com este email.' }
+      }
+    }
+
     // Atualiza o usuário
     await prisma.usuario.update({
       where: { id: params.id },
       data: {
         identificacao: params.identificacao,
         nome: params.nome,
+        email: params.email,
         perfil: params.perfil,
         unidadeId: params.unidadeId,
       }
@@ -154,7 +178,7 @@ export async function excluirUsuario(id: number): Promise<{ success: boolean; me
     // Busca o usuário com movimentações
     const usuario = await prisma.usuario.findUnique({
       where: { id },
-      include: { 
+      include: {
         movimentacoesFeitas: true,
         retiradasAutorizadas: true,
         devolucoesAutorizadas: true,
@@ -176,14 +200,14 @@ export async function excluirUsuario(id: number): Promise<{ success: boolean; me
     }
 
     // Verifica se tem movimentações vinculadas - oferece inativar
-    const temMovimentacoes = 
-      usuario.movimentacoesFeitas.length > 0 || 
-      usuario.retiradasAutorizadas.length > 0 || 
+    const temMovimentacoes =
+      usuario.movimentacoesFeitas.length > 0 ||
+      usuario.retiradasAutorizadas.length > 0 ||
       usuario.devolucoesAutorizadas.length > 0
 
     if (temMovimentacoes) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: 'Este usuário possui histórico de movimentações e não pode ser excluído.',
         podeInativar: true
       }
