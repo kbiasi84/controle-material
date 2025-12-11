@@ -51,10 +51,13 @@ export async function verifyToken(token: string): Promise<SessionPayload | null>
 export async function createSession(payload: SessionPayload): Promise<void> {
   const token = await createToken(payload)
   const cookieStore = await cookies()
-  
+
   cookieStore.set(COOKIE_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    // secure: process.env.NODE_ENV === 'production',
+    // IMPORTANTE: Em produção sem SSL (HTTPS), isso deve ser false.
+    // Quando tiver SSL configurado, volte para: process.env.NODE_ENV === 'production'
+    secure: false,
     sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 7, // 7 dias em segundos
@@ -67,9 +70,9 @@ export async function createSession(payload: SessionPayload): Promise<void> {
 export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = await cookies()
   const token = cookieStore.get(COOKIE_NAME)?.value
-  
+
   if (!token) return null
-  
+
   return verifyToken(token)
 }
 
