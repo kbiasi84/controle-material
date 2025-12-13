@@ -1,4 +1,4 @@
-# Documentação Técnica: Sistema de Controle de Materiais e Patrimônio (SCMP)
+# Documentação Técnica: Sistema de Controle de Materiais e Patrimônio (LCMP)
 
 ## 1. Visão Geral
 
@@ -141,7 +141,7 @@ Quando um usuário loga, o sistema calcula a lista de IDs Permitidos:
 ### 6.1 Interface Visual
 
 - **Design System:** Tema profissional com cores orange/amber e fundo slate
-- **Sidebar:** Menu lateral com logo "SCMP Policial", navegação por ícones, logout
+- **Sidebar:** Menu lateral com logo "LCMP Policial", navegação por ícones, logout
 - **Header:** Breadcrumbs, exibição da hierarquia da unidade (ex: "BOP3 > 3PEL > 3CIA > 3BPRV"), avatar do usuário
 - **Cards:** Design padronizado com bordas arredondadas, ícones por tipo de material, badges de status coloridos
 - **Botões:** Estilo consistente com altura h-12, bordas arredondadas xl, cores padronizadas

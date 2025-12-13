@@ -18,14 +18,14 @@ export default function LoginPage() {
         <div className="flex flex-col items-center mb-8">
           <img
             src="/asa.png"
-            alt="Logo SCMP"
+            alt="Logo LCMP"
             className="w-80 h-auto mb-4"
           />
           <h1 className="text-3xl font-bold tracking-tight text-white">
             Livro de Material
           </h1>
           <p className="text-slate-400 mt-1 text-base">
-            Sistema de Controle de Materiais
+            Livro de Controle de Materiais
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-slate-500 text-sm mt-6">
-          © 2025 SCMP v1.1
+          © 2025 LCMP v1.0
         </p>
       </div>
 

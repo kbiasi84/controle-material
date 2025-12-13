@@ -23,7 +23,7 @@ export function ResetEmail({ resetLink, userName }: ResetEmailProps) {
                 <Container style={container}>
                     {/* Header */}
                     <Section style={header}>
-                        <Text style={logoText}>📦 SCMP</Text>
+                        <Text style={logoText}>📦 LCMP</Text>
                         <Text style={logoSubtext}>Sistema de Controle de Materiais</Text>
                     </Section>
 
@@ -36,7 +36,7 @@ export function ResetEmail({ resetLink, userName }: ResetEmailProps) {
                         </Text>
 
                         <Text style={paragraph}>
-                            Recebemos uma solicitação para redefinir a senha da sua conta no SCMP.
+                            Recebemos uma solicitação para redefinir a senha da sua conta no LCMP.
                         </Text>
 
                         <Text style={paragraph}>
@@ -67,7 +67,7 @@ export function ResetEmail({ resetLink, userName }: ResetEmailProps) {
                             Este é um e-mail automático. Por favor, não responda.
                         </Text>
                         <Text style={footerText}>
-                            © 2025 SCMP - Sistema de Controle de Materiais Policiais
+                            © 2025 LCMP - Sistema de Controle de Materiais Policiais
                         </Text>
                     </Section>
                 </Container>

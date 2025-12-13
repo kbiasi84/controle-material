@@ -3,7 +3,7 @@ import { cookies } from 'next/headers'
 import { Perfil } from '@prisma/client'
 
 // Chave secreta para JWT - usar variável de ambiente em produção
-const SECRET_KEY = process.env.JWT_SECRET || 'scmp-dev-secret-key-change-in-production'
+const SECRET_KEY = process.env.JWT_SECRET || 'lcmp-dev-secret-key-change-in-production'
 const encodedKey = new TextEncoder().encode(SECRET_KEY)
 
 // Configurações do token

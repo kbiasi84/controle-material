@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { 
-  Package, 
+import {
+  Package,
   Plus,
   Edit,
   Trash2,
@@ -22,6 +22,7 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  ArrowRightLeft,
 } from 'lucide-react'
 import { ModalMaterial } from './modal-material'
 import { ModalExcluirMaterial } from './modal-excluir-material'
@@ -61,9 +62,9 @@ interface MateriaisGestaoProps {
   manutencao: number
 }
 
-export function MateriaisGestao({ 
-  materiais, 
-  tipos, 
+export function MateriaisGestao({
+  materiais,
+  tipos,
   unidades,
   paginaAtual,
   totalPaginas,
@@ -78,6 +79,7 @@ export function MateriaisGestao({
   const [modalNovoOpen, setModalNovoOpen] = useState(false)
   const [materialEditando, setMaterialEditando] = useState<Material | null>(null)
   const [materialExcluindo, setMaterialExcluindo] = useState<Material | null>(null)
+  const [materialTransferindo, setMaterialTransferindo] = useState<Material | null>(null)
   const [materialManutencao, setMaterialManutencao] = useState<Material | null>(null)
 
   // Estados dos filtros
@@ -102,7 +104,7 @@ export function MateriaisGestao({
   // Handler para busca com debounce
   const handleSearchChange = (value: string) => {
     setSearchValue(value)
-    
+
     // Debounce simples
     const timeout = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString())
@@ -114,7 +116,7 @@ export function MateriaisGestao({
       params.delete('pagina')
       router.push(`/dashboard/materiais?${params.toString()}`, { scroll: false })
     }, 400)
-    
+
     return () => clearTimeout(timeout)
   }
 
@@ -164,7 +166,7 @@ export function MateriaisGestao({
             Cadastre, edite e gerencie todos os materiais da sua região
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           {/* Badge Manutenção */}
           {manutencao > 0 && (
@@ -173,9 +175,9 @@ export function MateriaisGestao({
               {manutencao} em Manutenção
             </div>
           )}
-          
+
           {/* Botão Novo Material */}
-          <button 
+          <button
             onClick={() => setModalNovoOpen(true)}
             className="inline-flex items-center px-6 py-3.5 rounded-xl text-base font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors shadow-sm"
           >
@@ -190,11 +192,11 @@ export function MateriaisGestao({
         <div className="flex flex-col lg:flex-row gap-4 items-center">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input 
+            <input
               type="text"
               value={searchValue}
               onChange={(e) => handleSearchChange(e.target.value)}
-              placeholder="Buscar por código, descrição ou tipo... (mínimo 3 caracteres)" 
+              placeholder="Buscar por código, descrição ou tipo... (mínimo 3 caracteres)"
               className="w-full h-12 pl-12 pr-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors"
             />
             {searchValue.length > 0 && searchValue.length < 3 && (
@@ -204,7 +206,7 @@ export function MateriaisGestao({
             )}
           </div>
           <div className="flex flex-wrap gap-3 w-full lg:w-auto">
-            <select 
+            <select
               value={currentUnidade}
               onChange={(e) => updateUrl('unidade', e.target.value)}
               className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
@@ -214,7 +216,7 @@ export function MateriaisGestao({
                 <option key={unidade.id} value={unidade.id.toString()}>{unidade.nome}</option>
               ))}
             </select>
-            <select 
+            <select
               value={currentTipo}
               onChange={(e) => updateUrl('tipo', e.target.value)}
               className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
@@ -224,7 +226,7 @@ export function MateriaisGestao({
                 <option key={tipo.id} value={tipo.id.toString()}>{tipo.nome}</option>
               ))}
             </select>
-            <select 
+            <select
               value={currentStatus}
               onChange={(e) => updateUrl('status', e.target.value)}
               className="h-12 px-5 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-600 bg-slate-50 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
@@ -307,8 +309,17 @@ export function MateriaisGestao({
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-2">
+                          {material.status === 'DISPONIVEL' && (
+                            <button
+                              onClick={() => setMaterialTransferindo(material)}
+                              className="p-2.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors"
+                              title="Transferir para outra unidade"
+                            >
+                              <ArrowRightLeft className="w-5 h-5" />
+                            </button>
+                          )}
                           {material.status === 'MANUTENCAO' && (
-                            <button 
+                            <button
                               onClick={() => setMaterialManutencao(material)}
                               className="p-2.5 rounded-lg text-yellow-600 hover:bg-yellow-50 transition-colors"
                               title="Concluir Manutenção"
@@ -316,14 +327,14 @@ export function MateriaisGestao({
                               <Wrench className="w-5 h-5" />
                             </button>
                           )}
-                          <button 
+                          <button
                             onClick={() => setMaterialEditando(material)}
                             className="p-2.5 rounded-lg text-slate-600 hover:bg-slate-100 transition-colors"
                             title="Editar"
                           >
                             <Edit className="w-5 h-5" />
                           </button>
-                          <button 
+                          <button
                             onClick={() => setMaterialExcluindo(material)}
                             className="p-2.5 rounded-lg text-red-600 hover:bg-red-50 transition-colors"
                             title="Excluir"
@@ -347,7 +358,7 @@ export function MateriaisGestao({
                 <span className="font-bold text-slate-700">{fimRegistros}</span> de{' '}
                 <span className="font-bold text-slate-700">{totalRegistros}</span> materiais
               </p>
-              
+
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => handlePageChange(paginaAtual - 1)}
@@ -356,7 +367,7 @@ export function MateriaisGestao({
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
-                
+
                 <div className="flex items-center gap-1">
                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
                     let pageNum: number
@@ -369,23 +380,22 @@ export function MateriaisGestao({
                     } else {
                       pageNum = paginaAtual - 2 + i
                     }
-                    
+
                     return (
                       <button
                         key={pageNum}
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${
-                          pageNum === paginaAtual
-                            ? 'bg-blue-600 text-white'
-                            : 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
-                        }`}
+                        className={`w-10 h-10 rounded-lg text-sm font-bold transition-colors ${pageNum === paginaAtual
+                          ? 'bg-blue-600 text-white'
+                          : 'border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
+                          }`}
                       >
                         {pageNum}
                       </button>
                     )
                   })}
                 </div>
-                
+
                 <button
                   onClick={() => handlePageChange(paginaAtual + 1)}
                   disabled={paginaAtual >= totalPaginas}
@@ -428,6 +438,14 @@ export function MateriaisGestao({
         isOpen={!!materialManutencao}
         onClose={() => setMaterialManutencao(null)}
         material={materialManutencao}
+      />
+
+      {/* Modal Transferir Material */}
+      <ModalTransferirMaterial
+        isOpen={!!materialTransferindo}
+        onClose={() => setMaterialTransferindo(null)}
+        material={materialTransferindo}
+        unidades={unidades}
       />
     </div>
   )
@@ -476,11 +494,11 @@ function ModalConcluirManutencao({ isOpen, onClose, material }: ModalConcluirMan
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
+      <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={handleClose}
       />
-      
+
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4">
         <div className="flex items-center justify-between p-6 border-b border-slate-200">
           <div className="flex items-center gap-3">
@@ -492,7 +510,7 @@ function ModalConcluirManutencao({ isOpen, onClose, material }: ModalConcluirMan
               <p className="text-sm text-slate-500">Verificar e concluir manutenção</p>
             </div>
           </div>
-          <button 
+          <button
             onClick={handleClose}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
           >
@@ -503,11 +521,10 @@ function ModalConcluirManutencao({ isOpen, onClose, material }: ModalConcluirMan
         <div className="p-6">
           {/* Resultado */}
           {resultado && (
-            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-              resultado.success 
-                ? 'bg-green-50 text-green-800 border border-green-200' 
-                : 'bg-red-50 text-red-800 border border-red-200'
-            }`}>
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${resultado.success
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
               {resultado.success ? (
                 <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
               ) : (
@@ -588,3 +605,198 @@ function ModalConcluirManutencao({ isOpen, onClose, material }: ModalConcluirMan
   )
 }
 
+// ============ MODAL TRANSFERIR MATERIAL ============
+
+import { transferirMaterial } from '@/app/dashboard/transferencia-actions'
+
+interface ModalTransferirMaterialProps {
+  isOpen: boolean
+  onClose: () => void
+  material: Material | null
+  unidades: Unidade[]
+}
+
+function ModalTransferirMaterial({ isOpen, onClose, material, unidades }: ModalTransferirMaterialProps) {
+  const [isLoading, setIsLoading] = useState(false)
+  const [resultado, setResultado] = useState<{ success: boolean; message: string } | null>(null)
+  const [destinoId, setDestinoId] = useState('')
+  const [observacao, setObservacao] = useState('')
+
+  // Reset form when modal opens
+  const handleOpen = () => {
+    if (isOpen && material) {
+      // Filtra a unidade atual do material
+      const unidadesDisponiveis = unidades.filter(u => u.id !== material.unidadeId)
+      setDestinoId(unidadesDisponiveis.length > 0 ? unidadesDisponiveis[0].id.toString() : '')
+      setObservacao('')
+      setResultado(null)
+    }
+  }
+
+  // Effect to reset form
+  if (isOpen && material && destinoId === '' && resultado === null) {
+    handleOpen()
+  }
+
+  const handleTransferir = async () => {
+    if (!material || !destinoId) return
+
+    setIsLoading(true)
+    setResultado(null)
+
+    try {
+      const result = await transferirMaterial({
+        materialId: material.id,
+        destinoId: parseInt(destinoId),
+        observacao: observacao || undefined,
+      })
+      setResultado(result)
+
+      if (result.success) {
+        setTimeout(() => {
+          handleClose()
+        }, 1500)
+      }
+    } catch {
+      setResultado({ success: false, message: 'Erro ao processar a transferência.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleClose = () => {
+    setResultado(null)
+    setDestinoId('')
+    setObservacao('')
+    onClose()
+  }
+
+  if (!isOpen || !material) return null
+
+  // Filtra a unidade atual do material
+  const unidadesDisponiveis = unidades.filter(u => u.id !== material.unidadeId)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={handleClose}
+      />
+
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+              <ArrowRightLeft className="w-6 h-6 text-blue-600" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">Transferir Material</h2>
+              <p className="text-sm text-slate-500">Mover para outra unidade</p>
+            </div>
+          </div>
+          <button
+            onClick={handleClose}
+            className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="p-6">
+          {/* Resultado */}
+          {resultado && (
+            <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${resultado.success
+                ? 'bg-green-50 text-green-800 border border-green-200'
+                : 'bg-red-50 text-red-800 border border-red-200'
+              }`}>
+              {resultado.success ? (
+                <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />
+              ) : (
+                <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
+              )}
+              <p className="text-sm font-medium">{resultado.message}</p>
+            </div>
+          )}
+
+          {!resultado?.success && (
+            <>
+              {/* Info do Material */}
+              <div className="bg-slate-50 rounded-xl p-4 mb-6">
+                <p className="font-bold text-slate-800">{material.descricao || material.tipo.nome}</p>
+                <p className="text-sm text-slate-500 font-mono">{material.codigoIdentificacao}</p>
+                <div className="flex items-center text-sm text-slate-400 mt-2">
+                  <Building2 className="w-4 h-4 mr-1" />
+                  Unidade atual: {material.unidade.nome}
+                </div>
+              </div>
+
+              {/* Seleção de Unidade Destino */}
+              <div className="mb-5">
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Unidade de Destino *
+                </label>
+                {unidadesDisponiveis.length === 0 ? (
+                  <p className="text-sm text-slate-500">Nenhuma outra unidade disponível para transferência.</p>
+                ) : (
+                  <select
+                    value={destinoId}
+                    onChange={(e) => setDestinoId(e.target.value)}
+                    className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
+                  >
+                    {unidadesDisponiveis.map((u) => (
+                      <option key={u.id} value={u.id.toString()}>
+                        {u.nome}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Observação */}
+              <div className="mb-6">
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Observação (opcional)
+                </label>
+                <textarea
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  placeholder="Motivo da transferência..."
+                  rows={3}
+                  className="w-full px-4 py-3 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 placeholder:text-slate-400 outline-none focus:border-blue-500 focus:bg-white transition-colors resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="flex-1 h-12 rounded-xl text-base font-bold border-2 border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  onClick={handleTransferir}
+                  disabled={isLoading || unidadesDisponiveis.length === 0}
+                  className="flex-1 h-12 rounded-xl text-base font-bold bg-blue-600 text-white hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Transferindo...
+                    </>
+                  ) : (
+                    <>
+                      <ArrowRightLeft className="w-5 h-5" />
+                      Confirmar Transferência
+                    </>
+                  )}
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}

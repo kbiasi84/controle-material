@@ -25,7 +25,7 @@ enum StatusMaterial {
 
 model Unidade {
   id        Int      @id @default(autoincrement())
-  nome      String   @unique
+  nome      String   // Removido @unique - unicidade agora é composta
   sigla     String?  // Ex: "BOP", "PEL", "CIA", "BPRv", "CPRv"
   endereco  String?
   createdAt DateTime @default(now())
@@ -40,6 +40,10 @@ model Unidade {
   materiais             Material[]
   transferenciasOrigem  Transferencia[] @relation("OrigemUnidade")
   transferenciasDestino Transferencia[] @relation("DestinoUnidade")
+
+  // Unicidade composta: permite nomes iguais em diferentes unidades superiores
+  // Ex: "1ª CIA" pode existir tanto no "1º BPRv" quanto no "2º BPRv"
+  @@unique([nome, unidadeSuperiorId])
 }
 
 model TipoMaterial {

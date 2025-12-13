@@ -335,11 +335,14 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
           unidadeSuperiorId: unidade.unidadeSuperiorId?.toString() || '',
         })
       } else {
+        // Pré-seleciona a primeira unidade disponível (inclui a própria lista filtrada)
+        const unidadesDisponiveis = todasUnidades
+        const primeiraUnidadeId = unidadesDisponiveis.length > 0 ? unidadesDisponiveis[0].id.toString() : ''
         setFormData({
           nome: '',
           sigla: '',
           endereco: '',
-          unidadeSuperiorId: '',
+          unidadeSuperiorId: primeiraUnidadeId,
         })
       }
       setResultado(null)
@@ -490,7 +493,7 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
                 onChange={(e) => setFormData({ ...formData, unidadeSuperiorId: e.target.value })}
                 className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
               >
-                <option value="">Nenhuma (Unidade Raiz)</option>
+
                 {unidadesDisponiveis.map((u) => (
                   <option key={u.id} value={u.id.toString()}>
                     {u.nome}

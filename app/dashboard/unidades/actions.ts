@@ -39,13 +39,16 @@ export async function criarUnidade(params: CriarUnidadeParams): Promise<{ succes
   }
 
   try {
-    // Verifica se o nome já existe
-    const existente = await prisma.unidade.findUnique({
-      where: { nome: params.nome }
+    // Verifica se o nome já existe NA MESMA unidade superior (unicidade composta)
+    const existente = await prisma.unidade.findFirst({
+      where: {
+        nome: params.nome,
+        unidadeSuperiorId: params.unidadeSuperiorId || null
+      }
     })
 
     if (existente) {
-      return { success: false, message: 'Já existe uma unidade com este nome.' }
+      return { success: false, message: 'Já existe uma unidade com este nome nesta hierarquia.' }
     }
 
     // Cria a unidade
@@ -95,14 +98,18 @@ export async function editarUnidade(params: EditarUnidadeParams): Promise<{ succ
       return { success: false, message: 'Você não tem permissão para editar esta unidade.' }
     }
 
-    // Verifica se o novo nome já existe (se foi alterado)
-    if (params.nome !== unidade.nome) {
-      const existente = await prisma.unidade.findUnique({
-        where: { nome: params.nome }
+    // Verifica se o novo nome já existe NA MESMA unidade superior (se foi alterado)
+    if (params.nome !== unidade.nome || params.unidadeSuperiorId !== unidade.unidadeSuperiorId) {
+      const existente = await prisma.unidade.findFirst({
+        where: {
+          nome: params.nome,
+          unidadeSuperiorId: params.unidadeSuperiorId ?? null,
+          NOT: { id: params.id } // Exclui a própria unidade da busca
+        }
       })
 
       if (existente) {
-        return { success: false, message: 'Já existe uma unidade com este nome.' }
+        return { success: false, message: 'Já existe uma unidade com este nome nesta hierarquia.' }
       }
     }
 
@@ -148,7 +155,7 @@ export async function excluirUnidade(id: number): Promise<{ success: boolean; me
     // Busca a unidade com relacionamentos
     const unidade = await prisma.unidade.findUnique({
       where: { id },
-      include: { 
+      include: {
         usuarios: true,
         materiais: true,
         subordinadas: true,
@@ -166,24 +173,24 @@ export async function excluirUnidade(id: number): Promise<{ success: boolean; me
 
     // Verifica se tem usuários vinculados
     if (unidade.usuarios.length > 0) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: `Esta unidade possui ${unidade.usuarios.length} usuário(s) vinculado(s). Transfira-os antes de excluir.`
       }
     }
 
     // Verifica se tem materiais vinculados
     if (unidade.materiais.length > 0) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: `Esta unidade possui ${unidade.materiais.length} material(is) vinculado(s). Transfira-os antes de excluir.`
       }
     }
 
     // Verifica se tem unidades subordinadas
     if (unidade.subordinadas.length > 0) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         message: `Esta unidade possui ${unidade.subordinadas.length} unidade(s) subordinada(s). Remova a hierarquia antes de excluir.`
       }
     }

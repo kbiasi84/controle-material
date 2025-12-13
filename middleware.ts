@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify } from 'jose'
 import { Perfil } from '@prisma/client'
 
-const SECRET_KEY = process.env.JWT_SECRET || 'scmp-dev-secret-key-change-in-production'
+const SECRET_KEY = process.env.JWT_SECRET || 'lcmp-dev-secret-key-change-in-production'
 const encodedKey = new TextEncoder().encode(SECRET_KEY)
 
 // Rotas públicas (não requerem autenticação)

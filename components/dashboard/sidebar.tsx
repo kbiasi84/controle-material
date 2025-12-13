@@ -11,8 +11,10 @@ import {
   UserCog,
   Building2,
   LogOut,
-  Boxes,
+  BookOpen,
   FileText,
+  Tag,
+  ArrowRightLeft,
 } from 'lucide-react'
 import { logoutAction } from '@/app/dashboard/actions'
 
@@ -47,6 +49,8 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
 
   const menuAdmin: NavItem[] = [
     { label: 'Materiais', href: '/dashboard/materiais', icon: <Package className="w-6 h-6" /> },
+    { label: 'Transferências', href: '/dashboard/transferencias', icon: <ArrowRightLeft className="w-6 h-6" /> },
+    { label: 'Tipos de Material', href: '/dashboard/tipos-material', icon: <Tag className="w-6 h-6" /> },
     { label: 'Unidades', href: '/dashboard/unidades', icon: <Building2 className="w-6 h-6" /> },
     { label: 'Usuários', href: '/dashboard/usuarios', icon: <UserCog className="w-6 h-6" /> },
     { label: 'Relatórios', href: '/dashboard/relatorios', icon: <FileText className="w-6 h-6" /> },
@@ -88,9 +92,9 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
       {/* Logo Header */}
       <div className="h-20 flex items-center px-6 border-b border-slate-800 bg-slate-950 shrink-0">
         <div className="w-11 h-11 rounded-xl bg-blue-600 flex items-center justify-center mr-3 shadow-lg">
-          <Boxes className="w-6 h-6 text-white" />
+          <BookOpen className="w-6 h-6 text-white" />
         </div>
-        <h1 className="font-bold text-xl text-white tracking-wide">SCMP</h1>
+        <h1 className="font-bold text-xl text-white tracking-wide">LCMP</h1>
       </div>
 
       {/* Navigation */}
@@ -121,7 +125,7 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
 
       {/* Footer */}
       <div className="px-4 py-3 border-t border-slate-800 shrink-0">
-        <p className="text-xs text-slate-600 text-center">© 2025 SCMP v1.1</p>
+        <p className="text-xs text-slate-600 text-center">© 2025 LCMP v1.0</p>
       </div>
     </div>
   )
