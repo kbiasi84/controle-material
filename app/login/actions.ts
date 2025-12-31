@@ -118,7 +118,7 @@ export async function requestPasswordReset(email: string): Promise<PasswordReset
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     await resend.emails.send({
-      from: 'LCMP <onboarding@resend.dev>',
+      from: 'LCMP <noreply@chatdp.com.br>',
       to: email,
       subject: 'Recuperação de Senha - LCMP',
       react: ResetEmail({ resetLink, userName: usuario.nome }),
