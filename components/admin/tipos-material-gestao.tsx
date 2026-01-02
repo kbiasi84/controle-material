@@ -409,7 +409,7 @@ function ModalTipo({ isOpen, onClose, tipo }: ModalTipoProps) {
                     <div className="space-y-5">
                         <div>
                             <label className="block text-sm font-bold text-slate-700 mb-2">
-                                Novo nome do tipo*
+                                Nome do tipo*
                             </label>
                             <input
                                 type="text"

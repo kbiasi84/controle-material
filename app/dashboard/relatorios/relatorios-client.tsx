@@ -12,14 +12,12 @@ import {
     ChevronsRight,
     FileText,
     Clock,
-    Building2,
 } from 'lucide-react'
 import {
     searchMateriais,
     searchUsuarios,
     getRelatorioMaterial,
     getRelatorioUsuario,
-    getMateriaisPorUnidade,
 } from './actions'
 
 // Tipos
@@ -62,15 +60,6 @@ interface MovimentacaoUsuario {
     material: { id: number; codigo: string; descricao: string; tipo: string }
     respRetirada: { id: number; nome: string; identificacao: string }
     respDevolucao: { id: number; nome: string; identificacao: string } | null
-}
-
-interface MaterialUnidade {
-    id: number
-    codigo: string
-    descricao: string
-    tipo: string
-    status: string
-    usuarioEmUso: { id: number; nome: string; identificacao: string } | null
 }
 
 interface RelatoriosClientProps {
@@ -310,7 +299,7 @@ function Paginacao({
 
 // Componente Principal
 export function RelatoriosClient({ unidades }: RelatoriosClientProps) {
-    const [activeTab, setActiveTab] = useState<'material' | 'usuario' | 'unidade'>('material')
+    const [activeTab, setActiveTab] = useState<'material' | 'usuario'>('material')
 
     // Filtros de data
     const [dateFrom, setDateFrom] = useState<string>('')
@@ -338,18 +327,7 @@ export function RelatoriosClient({ unidades }: RelatoriosClientProps) {
     } | null>(null)
     const [usuarioLoading, setUsuarioLoading] = useState(false)
 
-    // Estado da aba Unidade
-    const [selectedUnidade, setSelectedUnidade] = useState<number | null>(null)
-    const [unidadeBusca, setUnidadeBusca] = useState('')
-    const [unidadeStatus, setUnidadeStatus] = useState('')
-    const [unidadeReport, setUnidadeReport] = useState<{
-        unidade: { id: number; nome: string } | null
-        materiais: MaterialUnidade[]
-        total: number
-        totalPaginas: number
-        paginaAtual: number
-    } | null>(null)
-    const [unidadeLoading, setUnidadeLoading] = useState(false)
+
 
     // Função para buscar relatório de material
     const fetchMaterialReport = useCallback(async (materialId: number, page: number = 1) => {
@@ -375,14 +353,6 @@ export function RelatoriosClient({ unidades }: RelatoriosClientProps) {
         setUsuarioLoading(false)
     }, [dateFrom, dateTo])
 
-    // Função para buscar materiais por unidade
-    const fetchUnidadeReport = useCallback(async (unidadeId: number, page: number = 1) => {
-        setUnidadeLoading(true)
-        const result = await getMateriaisPorUnidade(unidadeId, unidadeBusca, unidadeStatus, page)
-        setUnidadeReport(result as typeof unidadeReport)
-        setUnidadeLoading(false)
-    }, [unidadeBusca, unidadeStatus])
-
     // Refaz a busca quando as datas mudam
     useEffect(() => {
         if (selectedMaterial) {
@@ -396,16 +366,6 @@ export function RelatoriosClient({ unidades }: RelatoriosClientProps) {
         }
     }, [dateFrom, dateTo, selectedUsuario, fetchUsuarioReport])
 
-    // Refaz busca de unidade quando filtros mudam
-    useEffect(() => {
-        if (selectedUnidade) {
-            const timeout = setTimeout(() => {
-                fetchUnidadeReport(selectedUnidade, 1)
-            }, 300)
-            return () => clearTimeout(timeout)
-        }
-    }, [unidadeBusca, unidadeStatus, selectedUnidade, fetchUnidadeReport])
-
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -413,13 +373,13 @@ export function RelatoriosClient({ unidades }: RelatoriosClientProps) {
                 <div>
                     <h2 className="text-2xl font-bold text-slate-800">Relatórios</h2>
                     <p className="text-slate-500 mt-1">
-                        Consulte o histórico de movimentações por material, usuário ou unidade
+                        Consulte o histórico de movimentações por material ou usuário
                     </p>
                 </div>
             </div>
 
-            {/* Filtro de Data (apenas para abas de histórico) */}
-            {activeTab !== 'unidade' && (
+            {/* Filtro de Data */}
+            {(
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-200">
                     <div className="flex flex-col md:flex-row gap-4 items-center">
                         <div className="flex items-center gap-3 text-slate-600">
@@ -476,16 +436,6 @@ export function RelatoriosClient({ unidades }: RelatoriosClientProps) {
                     >
                         <User className="w-5 h-5" />
                         Histórico do Usuário
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('unidade')}
-                        className={`flex-1 px-6 py-4 text-sm font-bold transition-colors flex items-center justify-center gap-2 ${activeTab === 'unidade'
-                            ? 'text-green-600 border-b-2 border-green-600 bg-green-50/50'
-                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
-                            }`}
-                    >
-                        <Building2 className="w-5 h-5" />
-                        Materiais por Unidade
                     </button>
                 </div>
 
@@ -724,152 +674,6 @@ export function RelatoriosClient({ unidades }: RelatoriosClientProps) {
                                 <div className="text-center py-12 text-slate-500">
                                     <Search className="w-12 h-12 mx-auto mb-3 text-slate-300" />
                                     <p>Selecione um usuário para visualizar o histórico</p>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {activeTab === 'unidade' && (
-                        <div className="space-y-6">
-                            {/* Filtros */}
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <div className="flex-1">
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Selecionar Unidade
-                                    </label>
-                                    <select
-                                        value={selectedUnidade || ''}
-                                        onChange={(e) => {
-                                            const id = parseInt(e.target.value)
-                                            setSelectedUnidade(id || null)
-                                            if (id) {
-                                                fetchUnidadeReport(id, 1)
-                                            } else {
-                                                setUnidadeReport(null)
-                                            }
-                                        }}
-                                        className="w-full h-12 px-4 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-700 bg-slate-50 outline-none cursor-pointer focus:border-green-500 focus:bg-white transition-colors"
-                                    >
-                                        <option value="">Selecione uma unidade...</option>
-                                        {unidades.map((u) => (
-                                            <option key={u.id} value={u.id}>{u.nome}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="md:w-64">
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Status
-                                    </label>
-                                    <select
-                                        value={unidadeStatus}
-                                        onChange={(e) => setUnidadeStatus(e.target.value)}
-                                        className="w-full h-12 px-4 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-700 bg-slate-50 outline-none cursor-pointer focus:border-green-500 focus:bg-white transition-colors"
-                                    >
-                                        <option value="">Todos</option>
-                                        <option value="DISPONIVEL">Disponível</option>
-                                        <option value="EM_USO">Em Uso</option>
-                                        <option value="MANUTENCAO">Manutenção</option>
-                                        <option value="INATIVO">Inativo</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Busca por material */}
-                            {selectedUnidade && (
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                                        Buscar Material (mínimo 3 caracteres)
-                                    </label>
-                                    <div className="relative">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                                        <input
-                                            type="text"
-                                            value={unidadeBusca}
-                                            onChange={(e) => setUnidadeBusca(e.target.value)}
-                                            placeholder="Digite o código ou descrição..."
-                                            className="w-full h-12 pl-12 pr-4 border-2 border-slate-200 rounded-xl text-base font-medium text-slate-700 bg-slate-50 outline-none focus:border-green-500 focus:bg-white transition-colors"
-                                        />
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Unidade Selecionada */}
-                            {unidadeReport?.unidade && (
-                                <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-                                    <div className="flex items-center gap-3">
-                                        <Building2 className="w-6 h-6 text-green-600" />
-                                        <div>
-                                            <p className="font-bold text-green-900">{unidadeReport.unidade.nome}</p>
-                                            <p className="text-sm text-green-700">{unidadeReport.total} materiais encontrados</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Tabela de Materiais */}
-                            {unidadeLoading ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
-                                </div>
-                            ) : unidadeReport && unidadeReport.materiais.length > 0 ? (
-                                <div className="border border-slate-200 rounded-xl overflow-hidden">
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead className="bg-slate-50">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Código</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Descrição</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Tipo</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
-                                                    <th className="px-4 py-3 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Em Uso Por</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-200">
-                                                {unidadeReport.materiais.map((mat) => (
-                                                    <tr key={mat.id} className="hover:bg-slate-50">
-                                                        <td className="px-4 py-3">
-                                                            <div className="font-bold text-slate-800">{mat.codigo}</div>
-                                                        </td>
-                                                        <td className="px-4 py-3 text-sm text-slate-700">
-                                                            {mat.descricao}
-                                                        </td>
-                                                        <td className="px-4 py-3 text-sm text-slate-600">
-                                                            {mat.tipo}
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            <StatusBadge status={mat.status} />
-                                                        </td>
-                                                        <td className="px-4 py-3">
-                                                            {mat.usuarioEmUso ? (
-                                                                <div>
-                                                                    <div className="text-sm font-medium text-slate-800">{mat.usuarioEmUso.nome}</div>
-                                                                    <div className="text-xs text-slate-500">{mat.usuarioEmUso.identificacao}</div>
-                                                                </div>
-                                                            ) : (
-                                                                <span className="text-slate-400">-</span>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <Paginacao
-                                        paginaAtual={unidadeReport.paginaAtual}
-                                        totalPaginas={unidadeReport.totalPaginas}
-                                        totalRegistros={unidadeReport.total}
-                                        onPageChange={(page) => fetchUnidadeReport(selectedUnidade!, page)}
-                                    />
-                                </div>
-                            ) : selectedUnidade ? (
-                                <div className="text-center py-12 text-slate-500">
-                                    <Package className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                                    <p>Nenhum material encontrado para esta unidade</p>
-                                </div>
-                            ) : (
-                                <div className="text-center py-12 text-slate-500">
-                                    <Building2 className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-                                    <p>Selecione uma unidade para visualizar os materiais</p>
                                 </div>
                             )}
                         </div>

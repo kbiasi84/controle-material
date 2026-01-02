@@ -209,22 +209,24 @@ export function ModalMaterial({ isOpen, onClose, tipos, unidades, material }: Mo
             </select>
           </div>
 
-          {/* Unidade */}
-          <div>
-            <label className="block text-sm font-bold text-slate-700 mb-2">
-              Unidade *
-            </label>
-            <select
-              value={formData.unidadeId}
-              onChange={(e) => setFormData({ ...formData, unidadeId: e.target.value })}
-              className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
-            >
-              <option value="">Selecione a unidade</option>
-              {unidades.map((unidade) => (
-                <option key={unidade.id} value={unidade.id.toString()}>{unidade.nome}</option>
-              ))}
-            </select>
-          </div>
+          {/* Unidade (apenas para novo cadastro - para alterar unidade, usar função de transferência) */}
+          {!isEdicao && (
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                Unidade *
+              </label>
+              <select
+                value={formData.unidadeId}
+                onChange={(e) => setFormData({ ...formData, unidadeId: e.target.value })}
+                className="w-full h-12 px-4 text-base bg-slate-50 border-2 border-slate-200 rounded-xl text-slate-700 outline-none cursor-pointer focus:border-blue-500 focus:bg-white transition-colors"
+              >
+                <option value="">Selecione a unidade</option>
+                {unidades.map((unidade) => (
+                  <option key={unidade.id} value={unidade.id.toString()}>{unidade.nome}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Status (apenas para edição) */}
           {isEdicao && (

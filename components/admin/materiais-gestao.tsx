@@ -279,18 +279,13 @@ export function MateriaisGestao({
                   return (
                     <tr key={material.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-lg bg-orange-500 text-white flex items-center justify-center shrink-0">
-                            {getIconByType(material.tipo.nome)}
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-800">
-                              {material.descricao || material.tipo.nome}
-                            </p>
-                            <p className="text-sm text-slate-400 font-mono">
-                              {material.codigoIdentificacao}
-                            </p>
-                          </div>
+                        <div>
+                          <p className="font-bold text-slate-800">
+                            {material.descricao || material.tipo.nome}
+                          </p>
+                          <p className="text-sm text-slate-400 font-mono">
+                            {material.codigoIdentificacao}
+                          </p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -706,8 +701,8 @@ function ModalTransferirMaterial({ isOpen, onClose, material, unidades }: ModalT
           {/* Resultado */}
           {resultado && (
             <div className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${resultado.success
-                ? 'bg-green-50 text-green-800 border border-green-200'
-                : 'bg-red-50 text-red-800 border border-red-200'
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
               }`}>
               {resultado.success ? (
                 <CheckCircle className="w-5 h-5 text-green-600 shrink-0" />

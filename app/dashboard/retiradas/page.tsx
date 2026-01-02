@@ -78,19 +78,14 @@ export default async function MinhasRetiradasPage() {
               key={mov.id}
               className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 hover:shadow-lg transition-all duration-200 group flex flex-col"
             >
-              {/* Header com ícone e info */}
-              <div className="flex items-start gap-4 mb-5">
-                <div className="w-14 h-14 rounded-xl bg-slate-400 text-white flex items-center justify-center shrink-0 shadow-sm">
-                  <Package className="w-7 h-7" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-bold text-slate-800 text-lg leading-tight truncate">
-                    {mov.material.descricao || mov.material.tipo.nome}
-                  </h3>
-                  <p className="text-sm text-slate-400 font-mono mt-1">
-                    {mov.material.codigoIdentificacao}
-                  </p>
-                </div>
+              {/* Header com info */}
+              <div className="mb-5">
+                <h3 className="font-bold text-slate-800 text-lg leading-tight truncate">
+                  {mov.material.descricao || mov.material.tipo.nome}
+                </h3>
+                <p className="text-sm text-slate-400 font-mono mt-1">
+                  {mov.material.codigoIdentificacao} - {mov.material.tipo.nome}
+                </p>
               </div>
 
               {/* Status e Info */}

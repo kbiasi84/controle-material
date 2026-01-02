@@ -486,7 +486,7 @@ function ModalUnidade({ isOpen, onClose, todasUnidades, unidade }: ModalUnidadeP
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-2">
-                Unidade Superior (opcional)
+                Unidade Superior *
               </label>
               <select
                 value={formData.unidadeSuperiorId}

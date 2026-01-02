@@ -80,7 +80,7 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
 
   // IMPORTANTE: Verificar resultado PRIMEIRO (antes do status do material)
   // Isso evita que a tela de "indisponível" apareça após uma retirada bem-sucedida
-  
+
   // Tela de sucesso
   if (resultado?.success) {
     return (
@@ -142,11 +142,11 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
               <X className="w-5 h-5 text-slate-500" />
             </button>
           </div>
-          
+
           <p className="text-slate-600 mb-6">
             Este material está <strong>{material.status === 'EM_USO' ? 'em uso' : 'em manutenção'}</strong> e não pode ser retirado no momento.
           </p>
-          
+
           <button
             onClick={onClose}
             className="w-full py-3.5 rounded-xl text-base font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors"
@@ -160,9 +160,9 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
 
   const handleSubmit = async () => {
     setSubmitting(true)
-    
+
     const beneficiarioId = tipoRetirada === 'eu' ? usuarioLogado.userId : usuarioSelecionado
-    
+
     if (!beneficiarioId) {
       setResultado({ success: false, message: 'Selecione um policial para a retirada.' })
       setSubmitting(false)
@@ -176,7 +176,7 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
         responsavelId: usuarioLogado.userId,
         observacao: observacao || undefined,
       })
-      
+
       setResultado(result)
     } catch {
       setResultado({ success: false, message: 'Erro ao processar a retirada. Tente novamente.' })
@@ -204,15 +204,10 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Material Info */}
-          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-            <div className="w-12 h-12 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0">
-              <Zap className="w-6 h-6" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Item Selecionado</p>
-              <p className="font-bold text-slate-800 text-lg">{material.descricao || material.tipo.nome}</p>
-              <p className="text-sm text-slate-500">Cód: {material.codigoIdentificacao}</p>
-            </div>
+          <div className="p-4 bg-slate-50 rounded-xl">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Item Selecionado</p>
+            <p className="font-bold text-slate-800 text-lg">{material.descricao || material.tipo.nome}</p>
+            <p className="text-sm text-slate-500">{material.codigoIdentificacao} - {material.tipo.nome}</p>
           </div>
 
           {/* Opções de Retirada */}
@@ -233,14 +228,13 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
             // Controlador/Gestor: pode escolher
             <div className="space-y-4">
               <p className="font-bold text-slate-700">Quem vai retirar?</p>
-              
+
               {/* Opção: Eu mesmo */}
-              <label 
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  tipoRetirada === 'eu' 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-slate-200 hover:border-slate-300'
-                }`}
+              <label
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tipoRetirada === 'eu'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-slate-200 hover:border-slate-300'
+                  }`}
               >
                 <input
                   type="radio"
@@ -253,12 +247,11 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
               </label>
 
               {/* Opção: Outro Policial */}
-              <label 
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                  tipoRetirada === 'outro' 
-                    ? 'border-blue-500 bg-blue-50' 
-                    : 'border-slate-200 hover:border-slate-300'
-                }`}
+              <label
+                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${tipoRetirada === 'outro'
+                  ? 'border-blue-500 bg-blue-50'
+                  : 'border-slate-200 hover:border-slate-300'
+                  }`}
               >
                 <input
                   type="radio"
@@ -274,7 +267,7 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
               {tipoRetirada === 'outro' && (
                 <div className="space-y-3 pl-4 border-l-4 border-blue-200">
                   <p className="text-sm font-bold text-slate-600 uppercase tracking-wide">Selecione o Policial</p>
-                  
+
                   {/* Campo de Busca */}
                   <div className="relative">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -299,11 +292,10 @@ export function ModalRetirada({ material, usuarioLogado, onClose, onSuccess }: M
                       {usuarios.map((usuario) => (
                         <label
                           key={usuario.id}
-                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                            usuarioSelecionado === usuario.id
-                              ? 'bg-blue-100 border-2 border-blue-500'
-                              : 'bg-white border-2 border-transparent hover:bg-slate-100'
-                          }`}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${usuarioSelecionado === usuario.id
+                            ? 'bg-blue-100 border-2 border-blue-500'
+                            : 'bg-white border-2 border-transparent hover:bg-slate-100'
+                            }`}
                         >
                           <input
                             type="radio"

@@ -115,19 +115,16 @@ export function CardUsuarioEfetivo({ usuario, materiais, usuarioLogado }: CardUs
         {/* Lista de Materiais com botão individual */}
         <div className="space-y-2 mb-4 flex-1">
           {materiaisRestantes.map((material) => (
-            <div 
-              key={material.id} 
+            <div
+              key={material.id}
               className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl group/item hover:bg-slate-100 transition-colors"
             >
-              <div className="w-9 h-9 rounded-lg bg-slate-300 text-slate-600 flex items-center justify-center shrink-0">
-                <Package className="w-4 h-4" />
-              </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-slate-700 text-sm truncate">
                   {material.descricao || material.tipo.nome}
                 </p>
                 <p className="text-xs text-slate-400 font-mono">
-                  {material.codigoIdentificacao}
+                  {material.codigoIdentificacao} - {material.tipo.nome}
                 </p>
               </div>
               <button

@@ -90,7 +90,7 @@ export function ModalDevolucao({ material, usuarioLogado, onClose, onSuccess }: 
         observacao: observacao || undefined,
         enviarManutencao,
       })
-      
+
       setResultado(result)
     } catch {
       setResultado({ success: false, message: 'Erro ao processar a devolução. Tente novamente.' })
@@ -118,15 +118,10 @@ export function ModalDevolucao({ material, usuarioLogado, onClose, onSuccess }: 
         {/* Content */}
         <div className="p-6 space-y-6">
           {/* Material Info */}
-          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl">
-            <div className="w-12 h-12 rounded-xl bg-slate-400 text-white flex items-center justify-center shrink-0">
-              <ArrowDownToLine className="w-6 h-6" />
-            </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Item a Devolver</p>
-              <p className="font-bold text-slate-800 text-lg">{material.descricao || material.tipo.nome}</p>
-              <p className="text-sm text-slate-500">Cód: {material.codigoIdentificacao}</p>
-            </div>
+          <div className="p-4 bg-slate-50 rounded-xl">
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">Item a Devolver</p>
+            <p className="font-bold text-slate-800 text-lg">{material.descricao || material.tipo.nome}</p>
+            <p className="text-sm text-slate-500">{material.codigoIdentificacao} - {material.tipo.nome}</p>
           </div>
 
           {/* Quem está com o material */}
@@ -165,8 +160,8 @@ export function ModalDevolucao({ material, usuarioLogado, onClose, onSuccess }: 
             <textarea
               value={observacao}
               onChange={(e) => setObservacao(e.target.value)}
-              placeholder={enviarManutencao 
-                ? "Ex: Tela trincada, bateria não carrega..." 
+              placeholder={enviarManutencao
+                ? "Ex: Tela trincada, bateria não carrega..."
                 : "Ex: Devolvido em bom estado..."
               }
               rows={3}
@@ -187,11 +182,10 @@ export function ModalDevolucao({ material, usuarioLogado, onClose, onSuccess }: 
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className={`flex-1 py-3.5 rounded-xl text-base font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${
-              enviarManutencao 
-                ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
+            className={`flex-1 py-3.5 rounded-xl text-base font-bold transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${enviarManutencao
+                ? 'bg-yellow-500 text-white hover:bg-yellow-600'
                 : 'bg-blue-600 text-white hover:bg-blue-700'
-            }`}
+              }`}
           >
             {submitting ? (
               <>

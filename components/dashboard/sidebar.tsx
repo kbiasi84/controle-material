@@ -45,6 +45,7 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
 
   const menuOperacional: NavItem[] = [
     { label: 'Controle de Devolução', href: '/dashboard/devolucao', icon: <Users className="w-6 h-6" /> },
+    { label: 'Inventário', href: '/dashboard/inventario', icon: <Package className="w-6 h-6" /> },
   ]
 
   const menuAdmin: NavItem[] = [
@@ -102,7 +103,11 @@ export function Sidebar({ perfil, unidadeNome, userName, onNavigate }: SidebarPr
         <NavGroup title="Operacional" items={menuPrincipal} />
 
         {isControladorOrGestor && (
-          <NavGroup title="Gestão de Pessoal" items={menuOperacional} />
+          <div className="mb-4">
+            {menuOperacional.map((item) => (
+              <NavLink key={item.href} item={item} />
+            ))}
+          </div>
         )}
 
         {isGestor && (

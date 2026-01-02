@@ -1,7 +1,7 @@
 import { getSession } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { 
-  History, 
+import {
+  History,
   ArrowUpFromLine,
   ArrowDownToLine,
   Package,
@@ -14,7 +14,7 @@ import { Paginacao } from '@/components/dashboard/paginacao'
 const REGISTROS_POR_PAGINA = 15
 
 interface HistoricoPageProps {
-  searchParams: Promise<{ 
+  searchParams: Promise<{
     busca?: string
     status?: string
     periodo?: string
@@ -121,7 +121,7 @@ export default async function HistoricoPage({ searchParams }: HistoricoPageProps
           <History className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <h3 className="text-xl font-bold text-slate-600">
             {busca.length >= 3 || status !== 'TODOS'
-              ? 'Nenhum resultado encontrado' 
+              ? 'Nenhum resultado encontrado'
               : 'Nenhuma movimentação registrada'}
           </h3>
           <p className="text-slate-400 text-base mt-2">
@@ -159,30 +159,20 @@ export default async function HistoricoPage({ searchParams }: HistoricoPageProps
                   return (
                     <tr key={mov.id} className="hover:bg-slate-50 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${
-                            isDevolvido 
-                              ? 'bg-green-100 text-green-600' 
-                              : 'bg-orange-100 text-orange-600'
-                          }`}>
-                            <Package className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-800">
-                              {mov.material.descricao || mov.material.tipo.nome}
-                            </p>
-                            <p className="text-sm text-slate-400 font-mono">
-                              {mov.material.codigoIdentificacao}
-                            </p>
-                          </div>
+                        <div>
+                          <p className="font-bold text-slate-800">
+                            {mov.material.descricao || mov.material.tipo.nome}
+                          </p>
+                          <p className="text-sm text-slate-400 font-mono">
+                            {mov.material.codigoIdentificacao} - {mov.material.tipo.nome}
+                          </p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${
-                          isDevolvido 
-                            ? 'bg-green-50 text-green-700 border border-green-200' 
+                        <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold ${isDevolvido
+                            ? 'bg-green-50 text-green-700 border border-green-200'
                             : 'bg-orange-50 text-orange-700 border border-orange-200'
-                        }`}>
+                          }`}>
                           {isDevolvido ? (
                             <>
                               <CheckCircle className="w-3.5 h-3.5 mr-1.5" />
@@ -223,7 +213,7 @@ export default async function HistoricoPage({ searchParams }: HistoricoPageProps
               </tbody>
             </table>
           </div>
-          
+
           {/* Paginação */}
           <Paginacao
             paginaAtual={paginaAtual}
